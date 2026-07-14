@@ -1,0 +1,26 @@
+# === Segredos — NUNCA commitar ===
+.env
+.env.*
+!.env.example
+*.token
+secrets/
+
+# Dependências / build
+node_modules/
+.next/
+dist/
+build/
+
+# Vercel
+.vercel/
+
+# Supabase
+.supabase/
+supabase/.temp/
+
+# Config local do Claude (skills/settings pessoais — fora do repo do cliente)
+.claude/
+
+# OS / editor
+.DS_Store
+*.log
