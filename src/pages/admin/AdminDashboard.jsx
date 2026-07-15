@@ -1,144 +1,175 @@
 import { useEffect, useState } from 'react'
+import Chart from 'react-apexcharts'
 import { supabase } from '../../lib/supabase'
 import { brl } from '../../lib/format'
+import { coordCidade } from '../../lib/cidades'
+import { usePresence } from '../../context/PresenceContext'
+import MapaBrasil from '../../components/MapaBrasil'
 
 const STATUS = [
-  ['rascunho', 'Rascunho', '#8a8d84'],
-  ['enviado', 'Enviado', '#5aa2f0'],
-  ['confirmado', 'Confirmado', '#7c6ff0'],
-  ['em_aprovacao', 'Em aprovação', '#e3a53a'],
-  ['aprovado', 'Aprovado', '#26d451'],
-  ['lancado_totvs', 'Lançado TOTVS', '#12a03a'],
-  ['faturado', 'Faturado', '#00c53a'],
-  ['perdido', 'Perdido', '#ef5b5b'],
-  ['cancelado', 'Cancelado', '#6f716c'],
+  ['rascunho', 'Rascunho', '#8a8d84'], ['enviado', 'Enviado', '#5aa2f0'],
+  ['confirmado', 'Confirmado', '#7c6ff0'], ['em_aprovacao', 'Em aprovação', '#e3a53a'],
+  ['aprovado', 'Aprovado', '#26d451'], ['lancado_totvs', 'Lançado TOTVS', '#12a03a'],
+  ['faturado', 'Faturado', '#00c53a'], ['perdido', 'Perdido', '#ef5b5b'], ['cancelado', 'Cancelado', '#6f716c'],
 ]
 const isPedido = (s) => ['aprovado', 'lancado_totvs', 'faturado'].includes(s)
-
-function Bars({ items, format }) {
-  const max = Math.max(...items.map((i) => i.value), 1)
-  if (items.length === 0) return <div className="muted" style={{ fontSize: 13 }}>Sem dados ainda.</div>
-  return (
-    <div className="chart">
-      {items.map((it, i) => (
-        <div className="bar-row" key={i}>
-          <span className="lbl">{it.label}</span>
-          <span className="bar-track"><span className="bar-fill" style={{ width: (it.value / max * 100) + '%', background: it.color || 'var(--accent)' }} /></span>
-          <span className="bar-val">{format ? format(it.value) : it.value}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Donut({ data }) {
-  const total = data.reduce((s, d) => s + d.value, 0)
-  const R = 54, C = 2 * Math.PI * R
-  let off = 0
-  return (
-    <div className="donut-wrap">
-      <svg width="134" height="134" viewBox="0 0 134 134" role="img" aria-label="Distribuição por status">
-        <g transform="rotate(-90 67 67)">
-          <circle cx="67" cy="67" r={R} fill="none" stroke="var(--sunk)" strokeWidth="16" />
-          {total > 0 && data.filter((d) => d.value > 0).map((d, i) => {
-            const len = (d.value / total) * C
-            const seg = <circle key={i} cx="67" cy="67" r={R} fill="none" stroke={d.color} strokeWidth="16"
-              strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-off} />
-            off += len
-            return seg
-          })}
-        </g>
-        <text x="67" y="63" textAnchor="middle" fontSize="22" fontWeight="800" fill="var(--text)" fontFamily="var(--font-head)">{total}</text>
-        <text x="67" y="82" textAnchor="middle" fontSize="10" fill="var(--muted)">orçamentos</text>
-      </svg>
-      <div className="donut-legend">
-        {data.filter((d) => d.value > 0).map((d, i) => (
-          <div className="li" key={i}><span className="sw" style={{ background: d.color }} />{d.label} · <b style={{ color: 'var(--text)' }}>{d.value}</b></div>
-        ))}
-      </div>
-    </div>
-  )
-}
+const brlShort = (n) => (n >= 1000 ? 'R$ ' + (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + 'k' : brl(n))
+const themeMode = () => document.documentElement.getAttribute('data-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 
 export default function AdminDashboard() {
-  const [orcs, setOrcs] = useState(null)
-  const [clientes, setClientes] = useState([])
-  const [nReps, setNReps] = useState(0)
+  const { online } = usePresence()
+  const [d, setD] = useState(null)
 
   useEffect(() => {
     async function load() {
-      const [{ data: o }, { data: c }, { count }] = await Promise.all([
+      const [orcs, clientes, reps, terr, links] = await Promise.all([
         supabase.from('orcamentos').select('status,valor_total,rep:profiles!representante_id(nome)'),
-        supabase.from('clientes').select('estado,bloqueado'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('papel', 'representante'),
+        supabase.from('clientes').select('cidade,estado,representante_responsavel_id'),
+        supabase.from('profiles').select('id,nome,papel'),
+        supabase.from('territorios').select('id,definicao'),
+        supabase.from('representante_territorios').select('*'),
       ])
-      setOrcs(o || []); setClientes(c || []); setNReps(count || 0)
+      setD({ orcs: orcs.data || [], clientes: clientes.data || [], reps: reps.data || [], terr: terr.data || [], links: links.data || [] })
     }
     load()
   }, [])
 
-  if (orcs === null) return <div className="spinner" />
+  if (!d) return <div className="spinner" />
+  const { orcs, clientes, reps, terr, links } = d
+  const mode = themeMode()
 
   const sum = (f) => orcs.filter(f).reduce((s, o) => s + Number(o.valor_total || 0), 0)
-  const count = (f) => orcs.filter(f).length
+  const cnt = (f) => orcs.filter(f).length
   const faturado = sum((o) => o.status === 'faturado')
-  const nFaturado = count((o) => o.status === 'faturado')
+  const nFat = cnt((o) => o.status === 'faturado')
   const pedidos = sum((o) => isPedido(o.status))
-  const nGanhos = count((o) => isPedido(o.status))
-  const ticket = nFaturado ? faturado / nFaturado : 0
-  const conversao = orcs.length ? Math.round((nGanhos / orcs.length) * 100) : 0
-  const ativos = count((o) => !['faturado', 'perdido', 'cancelado'].includes(o.status))
-  const aguardando = count((o) => o.status === 'em_aprovacao')
+  const ticket = nFat ? faturado / nFat : 0
+  const conversao = orcs.length ? Math.round((cnt((o) => isPedido(o.status)) / orcs.length) * 100) : 0
+  const ativos = cnt((o) => !['faturado', 'perdido', 'cancelado'].includes(o.status))
+  const aguardando = cnt((o) => o.status === 'em_aprovacao')
 
-  // funil (valor por etapa)
-  const funil = STATUS.slice(0, 7).map(([st, label, color]) => ({ label, color, value: sum((o) => o.status === st) }))
-  // por representante (pedidos)
+  const kpis = [
+    { ic: '💰', tint: '#00c53a', val: brlShort(faturado), lab: 'Faturado' },
+    { ic: '📦', tint: '#5aa2f0', val: brlShort(pedidos), lab: 'Pedidos aprovados' },
+    { ic: '🎯', tint: '#7c6ff0', val: brlShort(ticket), lab: 'Ticket médio' },
+    { ic: '📈', tint: '#e3a53a', val: conversao + '%', lab: 'Conversão' },
+    { ic: '🧾', tint: '#26d451', val: ativos, lab: 'Orçamentos ativos' },
+    { ic: '⏳', tint: '#e3a53a', val: aguardando, lab: 'Aguardando aprovação' },
+    { ic: '🏢', tint: '#5aa2f0', val: clientes.length, lab: 'Clientes' },
+    { ic: '🟢', tint: '#00c53a', val: online.length, lab: 'Online agora' },
+  ]
+
+  // faturamento por rep
   const porRep = {}
   orcs.forEach((o) => { if (isPedido(o.status)) { const n = o.rep?.nome || '—'; porRep[n] = (porRep[n] || 0) + Number(o.valor_total || 0) } })
-  const repItems = Object.entries(porRep).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value)
-  // status donut
-  const donut = STATUS.map(([st, label, color]) => ({ label, color, value: count((o) => o.status === st) }))
-  // clientes por estado
-  const porEstado = {}
-  clientes.forEach((c) => { const e = c.estado || '—'; porEstado[e] = (porEstado[e] || 0) + 1 })
-  const estadoItems = Object.entries(porEstado).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value)
+  const repItems = Object.entries(porRep).map(([label, value]) => ({ label, value: Math.round(value) })).sort((a, b) => b.value - a.value)
+
+  // funil valor por etapa
+  const funil = STATUS.slice(0, 7).map(([st, label, color]) => ({ label, color, value: Math.round(sum((o) => o.status === st)) }))
+  // status donut (>0)
+  const donut = STATUS.map(([st, label, color]) => ({ label, color, value: cnt((o) => o.status === st) })).filter((x) => x.value > 0)
+
+  // mapa: clientes por cidade
+  const porCidade = {}
+  clientes.forEach((c) => { const cc = coordCidade(c.cidade); if (cc) { const k = c.cidade; porCidade[k] = porCidade[k] || { coordinates: cc, count: 0 }; porCidade[k].count++ } })
+  const clienteMarkers = Object.entries(porCidade).map(([label, v]) => ({ coordinates: v.coordinates, r: Math.min(4 + v.count * 2.2, 15), color: '#00c53a', label: `${label} (${v.count})` }))
+
+  // mapa: pin de cada representante
+  const repMarkers = reps.filter((r) => r.papel === 'representante').map((r) => {
+    const terrIds = links.filter((l) => l.representante_id === r.id).map((l) => l.territorio_id)
+    let coord = null
+    for (const t of terr.filter((x) => terrIds.includes(x.id))) {
+      for (const c of (t.definicao?.cidades || [])) { const cc = coordCidade(c); if (cc) { coord = cc; break } }
+      if (coord) break
+    }
+    if (!coord) { const cli = clientes.find((c) => c.representante_responsavel_id === r.id && coordCidade(c.cidade)); if (cli) coord = coordCidade(cli.cidade) }
+    return coord ? { coordinates: coord, label: r.nome.split(' ')[0], color: '#5aa2f0', r: 6 } : null
+  }).filter(Boolean)
+
+  const base = {
+    chart: { toolbar: { show: false }, fontFamily: 'Inter, sans-serif', background: 'transparent' },
+    theme: { mode },
+    grid: { borderColor: mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' },
+    tooltip: { theme: mode }, dataLabels: { enabled: false },
+    states: { hover: { filter: { type: 'lighten', value: 0.06 } } },
+  }
 
   return (
     <div>
-      <div className="page-head"><h1>Painel da operação</h1></div>
+      <div className="page-head"><h1>Cockpit da operação</h1></div>
 
-      <div className="metrics">
-        <div className="metric accent"><div className="n">{brl(faturado)}</div><div className="k">Faturado</div></div>
-        <div className="metric"><div className="n">{brl(pedidos)}</div><div className="k">Pedidos aprovados</div></div>
-        <div className="metric"><div className="n">{brl(ticket)}</div><div className="k">Ticket médio</div></div>
-        <div className="metric"><div className="n">{conversao}%</div><div className="k">Conversão</div></div>
-      </div>
-      <div className="metrics">
-        <div className="metric"><div className="n">{ativos}</div><div className="k">Orçamentos ativos</div></div>
-        <div className="metric"><div className="n">{aguardando}</div><div className="k">Aguardando aprovação</div></div>
-        <div className="metric"><div className="n">{clientes.length}</div><div className="k">Clientes</div></div>
-        <div className="metric"><div className="n">{nReps}</div><div className="k">Representantes</div></div>
+      <div className="kpi-grid">
+        {kpis.map((k, i) => (
+          <div className="kpi" key={i}>
+            <div className="ic" style={{ background: k.tint + '22', color: k.tint }}>{k.ic}</div>
+            <div className="val">{k.val}</div>
+            <div className="lab">{k.lab}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="chart-card">
-        <h3>Funil de vendas — valor por etapa</h3>
-        <Bars items={funil} format={brl} />
+      <div className="cockpit">
+        <div className="panel">
+          <h3>Representantes online <span className="cnt">{online.length}</span></h3>
+          {online.length === 0 ? <div className="muted" style={{ fontSize: 13 }}>Ninguém online.</div> : online.map((u, i) => (
+            <div className="online-item" key={i}>
+              <span className="online-dot" />
+              <div><div className="nm">{u.nome}</div><div className="role">{u.papel}</div></div>
+              <span className="tl">{u.tela}</span>
+            </div>
+          ))}
+        </div>
+        <div className="panel">
+          <h3>Taxa de conversão</h3>
+          <Chart type="radialBar" height={230} series={[conversao]} options={{
+            ...base, colors: ['#00c53a'], labels: ['Conversão'], stroke: { lineCap: 'round' },
+            plotOptions: { radialBar: { hollow: { size: '58%' }, track: { background: mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }, dataLabels: { name: { offsetY: 20, fontSize: '12px' }, value: { offsetY: -10, fontSize: '30px', fontWeight: 800, formatter: (v) => Math.round(v) + '%' } } } },
+            fill: { type: 'gradient', gradient: { shade: 'dark', gradientToColors: ['#26d451'], stops: [0, 100] } },
+          }} />
+        </div>
       </div>
 
-      <div className="dash-grid">
-        <div className="chart-card" style={{ marginBottom: 0 }}>
+      <div className="cockpit">
+        <div className="panel">
           <h3>Faturamento por representante</h3>
-          <Bars items={repItems} format={brl} />
+          <Chart type="bar" height={260} series={[{ name: 'Faturamento', data: repItems.map((r) => r.value) }]} options={{
+            ...base, colors: ['#00c53a', '#5aa2f0', '#7c6ff0', '#e3a53a', '#ef5b5b'],
+            plotOptions: { bar: { horizontal: true, distributed: true, borderRadius: 6, barHeight: '58%' } },
+            xaxis: { categories: repItems.map((r) => r.label), labels: { formatter: brlShort } },
+            legend: { show: false }, dataLabels: { enabled: true, formatter: brlShort, style: { fontSize: '11px', colors: ['#fff'] } },
+          }} />
         </div>
-        <div className="chart-card" style={{ marginBottom: 0 }}>
+        <div className="panel">
           <h3>Orçamentos por status</h3>
-          <Donut data={donut} />
+          <Chart type="donut" height={260} series={donut.map((s) => s.value)} options={{
+            ...base, labels: donut.map((s) => s.label), colors: donut.map((s) => s.color),
+            legend: { position: 'bottom', fontSize: '12px' }, stroke: { width: 2, colors: [mode === 'dark' ? '#1f1f1f' : '#fff'] },
+            plotOptions: { pie: { donut: { size: '62%', labels: { show: true, total: { show: true, label: 'Total', formatter: () => String(orcs.length) } } } } },
+          }} />
         </div>
       </div>
 
-      <div className="chart-card" style={{ marginTop: 16 }}>
-        <h3>Clientes por estado</h3>
-        <Bars items={estadoItems} />
+      <div className="panel" style={{ marginBottom: 16 }}>
+        <h3>Funil de vendas — valor por etapa</h3>
+        <Chart type="bar" height={280} series={[{ name: 'Valor', data: funil.map((f) => f.value) }]} options={{
+          ...base, colors: funil.map((f) => f.color),
+          plotOptions: { bar: { horizontal: true, distributed: true, borderRadius: 6, barHeight: '62%' } },
+          xaxis: { categories: funil.map((f) => f.label), labels: { formatter: brlShort } },
+          legend: { show: false }, dataLabels: { enabled: true, formatter: brlShort, style: { fontSize: '10px', colors: ['#fff'] } },
+        }} />
+      </div>
+
+      <div className="cockpit">
+        <div className="map-card">
+          <h3>Onde temos clientes</h3>
+          <div className="sub">Região Sul · tamanho do ponto = nº de clientes</div>
+          <MapaBrasil markers={clienteMarkers} showLabels center={[-51, -27.6]} scale={2100} height={360} />
+        </div>
+        <div className="map-card">
+          <h3>Territórios dos representantes</h3>
+          <div className="sub">Pino na região de cada representante</div>
+          <MapaBrasil markers={repMarkers} showLabels center={[-51, -27.6]} scale={2100} height={360} />
+        </div>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { initials } from '../lib/format'
 import ThemeToggle from './ThemeToggle'
+import { PresenceProvider } from '../context/PresenceContext'
 
 const repNav = [
   { to: '/', label: 'Início', icon: '⌂', end: true },
@@ -27,6 +28,7 @@ export default function Layout() {
   const bottom = isGestor ? [...repNav, { to: '/admin', label: 'Admin', icon: '▧', end: true }] : repNav
 
   return (
+    <PresenceProvider>
     <div className="shell">
       <aside className="sidenav">
         <div className="brand"><span className="dot">FU</span><b>FuCRM</b></div>
@@ -61,5 +63,6 @@ export default function Layout() {
         ))}
       </nav>
     </div>
+    </PresenceProvider>
   )
 }
