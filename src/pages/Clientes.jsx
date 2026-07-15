@@ -28,7 +28,7 @@ export default function Clientes() {
     ;(orcs || []).forEach((o) => {
       const m = map[o.cliente_id] || { count: 0, ganho: false, ativo: false }
       m.count++
-      if (['aprovado', 'lancado_totvs', 'faturado'].includes(o.status)) m.ganho = true
+      if (['lancado_totvs', 'faturado'].includes(o.status)) m.ganho = true
       else if (!['perdido', 'cancelado'].includes(o.status)) m.ativo = true
       map[o.cliente_id] = m
     })

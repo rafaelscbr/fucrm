@@ -52,7 +52,7 @@ export default function Dashboard() {
       const inMes = (dt) => (dt || '').slice(0, 7) === per
       const real = (m) => {
         if (m.metrica === 'faturamento') return (mOrcs || []).filter((o) => o.status === 'faturado' && inMes(o.created_at)).reduce((s, o) => s + Number(o.valor_total || 0), 0)
-        if (m.metrica === 'pedidos') return (mOrcs || []).filter((o) => ['aprovado', 'lancado_totvs', 'faturado'].includes(o.status) && inMes(o.created_at)).length
+        if (m.metrica === 'pedidos') return (mOrcs || []).filter((o) => ['lancado_totvs', 'faturado'].includes(o.status) && inMes(o.created_at)).length
         if (m.metrica === 'visitas') return (mInt || []).filter((i) => i.tipo !== 'ocorrencia' && inMes(i.data)).length
         if (m.metrica === 'novos_clientes') return (mInt || []).filter((i) => i.resumo === 'Tornou-se Cliente' && inMes(i.data)).length
         return 0

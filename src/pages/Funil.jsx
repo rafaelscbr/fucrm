@@ -3,14 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { brl } from '../lib/format'
 import { logAudit } from '../lib/audit'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 const COLS = [
-  ['rascunho', 'Rascunho'], ['enviado', 'Enviado'], ['confirmado', 'Confirmado'],
-  ['em_aprovacao', 'Em aprovação'], ['aprovado', 'Aprovado · Pedido'], ['faturado', 'Faturado'],
+  ['rascunho', 'Rascunho'], ['enviado', 'Enviado ao cliente'], ['aguardando_totvs', 'Aguardando TOTVS'],
+  ['lancado_totvs', 'Lançado TOTVS'], ['faturado', 'Faturado'],
 ]
+const SO_GESTOR = ['lancado_totvs', 'faturado']
 
 export default function Funil() {
   const nav = useNavigate()
+  const { isGestor } = useAuth()
+  const toast = useToast()
   const [orcs, setOrcs] = useState(null)
   const [drag, setDrag] = useState(null)
   const [over, setOver] = useState(null)
@@ -27,8 +32,9 @@ export default function Funil() {
     const card = drag
     setOver(null); setDrag(null)
     if (!card || card.status === status) return
+    if (SO_GESTOR.includes(status) && !isGestor) { toast('Só o gestor lança/fatura no TOTVS.', 'erro'); return }
     setOrcs((o) => o.map((x) => (x.id === card.id ? { ...x, status } : x)))
-    const extra = status === 'aprovado' ? { aprovado_em: new Date().toISOString() } : {}
+    const extra = status === 'lancado_totvs' ? { aprovado_em: new Date().toISOString() } : {}
     await supabase.from('orcamentos').update({ status, ...extra }).eq('id', card.id)
     logAudit('status_orcamento', 'orcamento', card.id, { status })
   }
@@ -44,7 +50,7 @@ export default function Funil() {
           const cards = orcs.filter((o) => o.status === st)
           return (
             <div key={st}
-              className={'kcol' + (st === 'em_aprovacao' ? ' gate' : '') + (over === st ? ' drop' : '')}
+              className={'kcol' + (st === 'aguardando_totvs' ? ' gate' : '') + (over === st ? ' drop' : '')}
               onDragOver={(e) => { e.preventDefault(); setOver(st) }}
               onDragLeave={() => setOver((o) => (o === st ? null : o))}
               onDrop={() => drop(st)}>

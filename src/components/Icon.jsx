@@ -16,6 +16,7 @@ const P = {
   importar: <><path d="M12 3v12" /><path d="M7 10l5 5 5-5" /><path d="M5 21h14" /></>,
   logs: <><path d="M22 12h-4l-3 8L9 4l-3 8H2" /></>,
   sair: <><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></>,
+  sino: <><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 01-3.4 0" /></>,
 }
 
 export default function Icon({ name, size = 19 }) {

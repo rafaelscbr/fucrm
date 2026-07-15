@@ -5,6 +5,7 @@ import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
 import { PresenceProvider } from '../context/PresenceContext'
 import InstallButton from './InstallButton'
+import NotificationBell from './NotificationBell'
 
 const repNav = [
   { to: '/', label: 'Início', icon: 'home', end: true },
@@ -13,7 +14,7 @@ const repNav = [
   { to: '/funil', label: 'Vendas', icon: 'funil' },
 ]
 const adminNav = [
-  { to: '/admin/aprovacoes', label: 'Aprovações', icon: 'aprovacoes' },
+  { to: '/admin/aprovacoes', label: 'Cadastro TOTVS', icon: 'aprovacoes' },
   { to: '/admin/metas', label: 'Metas & Ranking', icon: 'metas' },
   { to: '/admin/representantes', label: 'Representantes', icon: 'reps' },
   { to: '/admin/territorios', label: 'Territórios', icon: 'territorios' },
@@ -41,7 +42,7 @@ export default function Layout() {
   const { profile, signOut, isGestor } = useAuth()
   const loc = useLocation()
   const cls = ({ isActive }) => (isActive ? 'on' : '')
-  const bottom = isGestor ? [...repNav, { to: '/admin/aprovacoes', label: 'Aprovar', icon: 'aprovacoes' }] : repNav
+  const bottom = isGestor ? [...repNav, { to: '/admin/aprovacoes', label: 'TOTVS', icon: 'aprovacoes' }] : repNav
 
   return (
     <PresenceProvider>
@@ -74,6 +75,7 @@ export default function Layout() {
         <div className="main">
           <header className="topbar">
             <span className="t">{tituloDe(loc.pathname, isGestor)}</span>
+            <NotificationBell />
             <ThemeToggle />
             <span className="av av-top" title={profile?.nome}>{initials(profile?.nome)}</span>
           </header>

@@ -11,13 +11,13 @@ export const tipoClienteLabel = {
 export const statusLabel = {
   rascunho: 'Rascunho',
   enviado: 'Enviado ao cliente',
-  confirmado: 'Cliente confirmou',
-  em_aprovacao: 'Em aprovação',
-  aprovado: 'Aprovado · Pedido',
+  aguardando_totvs: 'Aguardando cadastro no TOTVS',
   lancado_totvs: 'Lançado no TOTVS',
   faturado: 'Faturado',
   perdido: 'Perdido',
   cancelado: 'Cancelado',
+  // legados
+  confirmado: 'Cliente confirmou', em_aprovacao: 'Em aprovação', aprovado: 'Aprovado',
 }
 
 export const canalLabel = {
@@ -39,6 +39,20 @@ export function diasAtras(date) {
 
 export function dataBR(date) {
   if (!date) return '—'
+  return new Date(date).toLocaleDateString('pt-BR')
+}
+
+export function tempoRel(date) {
+  if (!date) return ''
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
+  if (s < 60) return 'agora'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `há ${m} min`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `há ${h}h`
+  const d = Math.floor(h / 24)
+  if (d === 1) return 'ontem'
+  if (d < 7) return `há ${d} dias`
   return new Date(date).toLocaleDateString('pt-BR')
 }
 

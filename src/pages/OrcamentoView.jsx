@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
-import { brl, statusLabel, tipoClienteLabel, dataBR } from '../lib/format'
+import { brl, statusLabel, tipoClienteLabel, dataBR, tempoRel } from '../lib/format'
 import { logAudit } from '../lib/audit'
 import { waLink } from '../lib/whatsapp'
 
@@ -45,23 +45,57 @@ export default function OrcamentoView() {
 
   const acoes = []
   if (o.status === 'rascunho' && podeAndar) acoes.push(['Enviar ao cliente', () => setStatus('enviado')])
-  if (o.status === 'enviado' && podeAndar) acoes.push(['Cliente confirmou', () => setStatus('confirmado')])
-  if (o.status === 'confirmado' && podeAndar) acoes.push(['Enviar para aprovação', () => setStatus('em_aprovacao')])
-  if (o.status === 'em_aprovacao' && isGestor) {
-    acoes.push(['Aprovar → Pedido', () => setStatus('aprovado', { aprovado_por: session.user.id, aprovado_em: new Date().toISOString() })])
-    acoes.push(['Pedir ajuste', () => setStatus('rascunho'), 'warn'])
-  }
-  if (o.status === 'aprovado' && isGestor) acoes.push(['Marcar lançado no TOTVS', () => setStatus('lancado_totvs')])
+  if (o.status === 'enviado' && podeAndar) acoes.push(['Cliente aprovou → enviar p/ TOTVS', () => setStatus('aguardando_totvs')])
+  if (o.status === 'aguardando_totvs' && isGestor) acoes.push(['Lançar no TOTVS', () => setStatus('lancado_totvs', { aprovado_por: session.user.id, aprovado_em: new Date().toISOString() })])
   if (o.status === 'lancado_totvs' && isGestor) acoes.push(['Marcar faturado', () => setStatus('faturado')])
   const finais = ['faturado', 'perdido', 'cancelado']
   if (!finais.includes(o.status) && podeAndar) acoes.push(['Marcar perdido', perder, 'danger'])
+
+  const ORDEM = ['rascunho', 'enviado', 'aguardando_totvs', 'lancado_totvs', 'faturado']
+  const FLUXO = [
+    { key: 'rascunho', label: 'Orçamento criado', em: o.created_at },
+    { key: 'enviado', label: 'Enviado ao cliente', em: o.enviado_em },
+    { key: 'aguardando_totvs', label: 'Cliente aprovou', sub: 'aguardando cadastro no TOTVS', em: o.aprovado_cliente_em },
+    { key: 'lancado_totvs', label: 'Lançado no TOTVS', sub: 'pelo gestor', em: o.lancado_em },
+    { key: 'faturado', label: 'Faturado pela Fuplastic', sub: 'conta para a meta do representante', em: o.faturado_em },
+  ]
+  const perdido = o.status === 'perdido' || o.status === 'cancelado'
+  let atualIdx = ORDEM.indexOf(o.status)
+  if (atualIdx === -1) atualIdx = FLUXO.reduce((acc, s, i) => (s.em ? i : acc), 0)
+  const quando = (em, estado) => (em ? `${dataBR(em)} · ${tempoRel(em)}` : estado === 'cur' ? 'em andamento' : '—')
 
   return (
     <div>
       <button className="back no-print" onClick={() => nav(-1)}>‹ Voltar</button>
       <div className="page-head">
         <h1>Orçamento #{o.numero}</h1>
-        <span className="pill n">{statusLabel[o.status]}</span>
+        <span className={'pill ' + (o.status === 'faturado' ? 'g' : perdido ? 'crit' : 'n')}>{statusLabel[o.status]}</span>
+      </div>
+
+      <div className="flow no-print">
+        {FLUXO.map((s, i) => {
+          const estado = i < atualIdx ? 'done' : i === atualIdx ? (perdido ? 'done' : 'cur') : 'todo'
+          return (
+            <div key={s.key} className={'flow-step ' + estado}>
+              <div className="flow-mark"><span className="flow-dot">{estado === 'done' ? '✓' : ''}</span></div>
+              <div className="flow-body">
+                <div className="flow-lbl">{s.label}</div>
+                {s.sub && <div className="flow-sub">{s.sub}</div>}
+                <div className="flow-when">{quando(s.em, estado)}</div>
+              </div>
+            </div>
+          )
+        })}
+        {perdido && (
+          <div className="flow-step lost">
+            <div className="flow-mark"><span className="flow-dot">✕</span></div>
+            <div className="flow-body">
+              <div className="flow-lbl">{o.status === 'cancelado' ? 'Cancelado' : 'Perdido'}</div>
+              {o.motivo_perda && <div className="flow-sub">{o.motivo_perda}</div>}
+              <div className="flow-when">{quando(o.perdido_em, 'done')}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="toolbar no-print">

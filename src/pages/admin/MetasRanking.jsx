@@ -32,7 +32,7 @@ export default function MetasRanking() {
       const escOrc = (o) => m.escopo === 'geral' ? true : m.escopo === 'representante' ? o.representante_id === m.alvo : o.cliente?.estado === m.alvo
       const escInt = (i) => m.escopo === 'geral' ? true : m.escopo === 'representante' ? i.representante_id === m.alvo : i.cliente?.estado === m.alvo
       if (m.metrica === 'faturamento') return orcs.filter((o) => o.status === 'faturado' && inMes(o.created_at) && escOrc(o)).reduce((s, o) => s + Number(o.valor_total || 0), 0)
-      if (m.metrica === 'pedidos') return orcs.filter((o) => ['aprovado', 'lancado_totvs', 'faturado'].includes(o.status) && inMes(o.created_at) && escOrc(o)).length
+      if (m.metrica === 'pedidos') return orcs.filter((o) => ['lancado_totvs', 'faturado'].includes(o.status) && inMes(o.created_at) && escOrc(o)).length
       if (m.metrica === 'visitas') return inter.filter((i) => i.tipo !== 'ocorrencia' && inMes(i.data) && escInt(i)).length
       if (m.metrica === 'novos_clientes') return inter.filter((i) => i.resumo === 'Tornou-se Cliente' && inMes(i.data) && escInt(i)).length
       return 0

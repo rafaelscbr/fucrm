@@ -3,20 +3,20 @@ import Chart from 'react-apexcharts'
 import { supabase } from '../../lib/supabase'
 import { brl } from '../../lib/format'
 import { coordCidade } from '../../lib/cidades'
+import { Link } from 'react-router-dom'
 import { usePresence } from '../../context/PresenceContext'
 import MapaBrasil from '../../components/MapaBrasil'
 
 const STATUS = [
-  ['rascunho', 'Rascunho'], ['enviado', 'Enviado'], ['confirmado', 'Confirmado'],
-  ['em_aprovacao', 'Em aprovação'], ['aprovado', 'Aprovado'], ['lancado_totvs', 'Lançado TOTVS'],
-  ['faturado', 'Faturado'], ['perdido', 'Perdido'], ['cancelado', 'Cancelado'],
+  ['rascunho', 'Rascunho'], ['enviado', 'Enviado'], ['aguardando_totvs', 'Aguardando TOTVS'],
+  ['lancado_totvs', 'Lançado TOTVS'], ['faturado', 'Faturado'], ['perdido', 'Perdido'], ['cancelado', 'Cancelado'],
 ]
-const STATUS_COR = { rascunho: '#94a3b8', enviado: '#4f8fe0', confirmado: '#7c6ff0', em_aprovacao: '#e3a53a', aprovado: '#3cc563', lancado_totvs: '#12a03a', faturado: '#00a838', perdido: '#e5544e', cancelado: '#64748b' }
+const STATUS_COR = { rascunho: '#94a3b8', enviado: '#4f8fe0', aguardando_totvs: '#e3a53a', lancado_totvs: '#12a03a', faturado: '#00a838', perdido: '#e5544e', cancelado: '#64748b' }
 const FUNIL_RAMP = ['#86e3a1', '#5ed685', '#3cc563', '#28b54f', '#17a441', '#0f9238', '#0b7d2c']
 const PERIODOS = [['30', '30 dias'], ['90', '90 dias'], ['180', '180 dias'], ['365', '12 meses'], ['all', 'Tudo']]
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
-const isPedido = (s) => ['aprovado', 'lancado_totvs', 'faturado'].includes(s)
+const isPedido = (s) => ['lancado_totvs', 'faturado'].includes(s)
 const brlShort = (n) => (n >= 1000 ? 'R$ ' + (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + 'k' : brl(n))
 const themeMode = () => document.documentElement.getAttribute('data-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 
@@ -117,12 +117,12 @@ export default function AdminDashboard() {
       ticket: nFat ? faturado / nFat : 0,
       conversao: oP.length ? Math.round((nGanhos / oP.length) * 100) : 0,
       ativos: cnt(oP, (o) => !['faturado', 'perdido', 'cancelado'].includes(o.status)),
-      aguardando: cnt(oP, (o) => o.status === 'em_aprovacao'),
+      aguardando: cnt(oP, (o) => o.status === 'aguardando_totvs'),
       nVisitas: vP.length, nClientes: clientes.length, totalOrcs: oP.length,
       mesesLbl: meses.map((m) => MESES[Number(m.slice(5)) - 1] + '/' + m.slice(2, 4)),
       serieFat: serie((o) => o.status === 'faturado'),
       seriePed: serie((o) => isPedido(o.status)),
-      funil: STATUS.slice(0, 7).map(([st, label]) => ({ label, value: Math.round(sum(oP, (o) => o.status === st)) })),
+      funil: STATUS.slice(0, 5).map(([st, label]) => ({ label, value: Math.round(sum(oP, (o) => o.status === st)) })),
       donut: STATUS.map(([st, label]) => ({ label, color: STATUS_COR[st], value: cnt(oP, (o) => o.status === st) })).filter((x) => x.value > 0),
       repFat: perf.filter((p) => p.faturado > 0 || p.pipeline > 0).map((p) => ({ label: p.nome.split(' ')[0], fat: Math.round(p.faturado), pipe: Math.round(p.pipeline) })),
       perf,
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
     { lab: 'Conversão', val: c.conversao + '%', sub: `${c.nGanhos} de ${c.totalOrcs} orçamentos`, kc: '#7c6ff0' },
     { lab: 'Visitas registradas', val: c.nVisitas, sub: 'no período selecionado', kc: '#4f8fe0' },
     { lab: 'Orçamentos ativos', val: c.ativos, sub: 'em negociação', kc: '#94a3b8' },
-    { lab: 'Aguardando aprovação', val: c.aguardando, sub: c.aguardando > 0 ? 'requer sua ação' : 'nada pendente', kc: c.aguardando > 0 ? '#e3a53a' : '#94a3b8' },
+    { lab: 'Aguardando TOTVS', val: c.aguardando, sub: c.aguardando > 0 ? 'para cadastrar' : 'nada pendente', kc: c.aguardando > 0 ? '#e3a53a' : '#94a3b8' },
     { lab: 'Clientes na base', val: c.nClientes, sub: 'carteira total', kc: '#94a3b8' },
   ]
 
@@ -168,6 +168,12 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {c.aguardando > 0 && (
+        <Link to="/admin/aprovacoes" className="banner warn" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+          <span>▲</span><span><b>{c.aguardando} orçamento(s)</b> aprovado(s) pelo cliente, aguardando cadastro no TOTVS. Toque para abrir a fila →</span>
+        </Link>
+      )}
 
       <div className="kpi-grid">
         {kpis.map((k, i) => (

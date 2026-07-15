@@ -144,6 +144,48 @@ textarea.input{resize:vertical;min-height:104px;line-height:1.55}
 .theme-toggle{background:var(--sunk);border:1px solid var(--border);border-radius:9px;width:34px;height:34px;
   display:grid;place-items:center;cursor:pointer;color:var(--text);font-size:15px;flex:0 0 auto}
 .theme-toggle:hover{border-color:var(--accent)}
+.notif{position:relative;flex:0 0 auto;display:flex}
+.notif-btn{background:var(--sunk);border:1px solid var(--border);border-radius:9px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;color:var(--text);position:relative}
+.notif-btn:hover{border-color:var(--accent)}
+.notif-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;line-height:1;box-shadow:0 0 0 2px var(--bg)}
+.notif-pop{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-width:calc(100vw - 24px);max-height:min(70vh,460px);overflow-y:auto;background:var(--raised);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);z-index:20;padding:6px}
+.notif-head{font-family:var(--font-head);font-weight:700;font-size:13px;color:var(--muted);padding:8px 10px 6px}
+.notif-empty{padding:18px 12px;text-align:center;color:var(--faint);font-size:13px}
+.notif-item{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:transparent;border:0;border-radius:10px;padding:10px 11px;cursor:pointer;color:inherit;font-family:inherit;transition:background .12s}
+.notif-item:hover{background:var(--accent-soft)}
+.notif-item.plain{cursor:default}
+.notif-item.plain:hover{background:transparent}
+.notif-txt{font-size:13px;line-height:1.35}
+.notif-time{font-size:11px;color:var(--faint);font-weight:600}
+/* ---------- Linha do tempo do fluxo (orçamento) ---------- */
+.flow{margin:0 0 16px;padding:16px 17px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.flow-step{display:flex;gap:13px}
+.flow-mark{position:relative;flex:0 0 auto;width:24px;display:flex;justify-content:center}
+.flow-dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;
+  background:var(--sunk);color:var(--faint);border:2px solid var(--border);z-index:1}
+.flow-step:not(:last-child) .flow-mark::after{content:"";position:absolute;top:22px;bottom:-8px;left:50%;width:2px;transform:translateX(-50%);background:var(--border)}
+.flow-body{padding-bottom:16px;min-width:0}
+.flow-step:last-child .flow-body{padding-bottom:0}
+.flow-lbl{font-weight:700;font-size:14.5px;line-height:1.25;color:var(--muted)}
+.flow-sub{font-size:12px;color:var(--faint);margin-top:1px}
+.flow-when{font-size:11.5px;color:var(--faint);font-weight:600;margin-top:3px}
+.flow-step.done .flow-dot,.flow-step.cur .flow-dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.flow-step.done .flow-mark::after{background:var(--accent)}
+.flow-step.done .flow-lbl,.flow-step.cur .flow-lbl{color:var(--text)}
+.flow-step.cur .flow-dot{box-shadow:0 0 0 5px var(--accent-soft);animation:flowpulse 1.8s ease-in-out infinite}
+.flow-step.cur .flow-lbl{color:var(--accent-text)}
+.flow-step.cur .flow-when{color:var(--accent-text)}
+.flow-step.lost .flow-dot{background:var(--danger);border-color:var(--danger);color:#fff;box-shadow:0 0 0 5px var(--danger-soft)}
+.flow-step.lost .flow-lbl{color:var(--danger)}
+@keyframes flowpulse{0%,100%{box-shadow:0 0 0 4px var(--accent-soft)}50%{box-shadow:0 0 0 7px transparent}}
+/* ---------- Fila de cadastro no TOTVS ---------- */
+.totvs-sec{font-size:13px;color:var(--muted);font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.totvs-cnt{background:var(--sunk);border:1px solid var(--border-soft);color:var(--muted);border-radius:20px;font-size:11px;padding:1px 8px;font-weight:800}
+.totvs-row{cursor:default}
+.totvs-row:hover{transform:none;border-color:var(--border)}
+.totvs-row .linkish{background:transparent;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit;min-width:0}
+.totvs-val{white-space:nowrap;font-size:14px}
+.totvs-row .btn.sm{flex:0 0 auto}
 .content{padding:18px;max-width:1080px;width:100%;margin:0 auto}
 .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;justify-content:space-around;
   background:var(--raised);border-top:1px solid var(--border-soft);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
