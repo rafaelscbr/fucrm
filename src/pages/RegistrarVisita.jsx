@@ -23,6 +23,7 @@ export default function RegistrarVisita() {
   const [aplicadas, setAplicadas] = useState({})
   const [pessoais, setPessoais] = useState({})
   const [saving, setSaving] = useState(false)
+  const [ia, setIa] = useState('')
 
   useEffect(() => {
     supabase.from('clientes')
@@ -50,6 +51,24 @@ export default function RegistrarVisita() {
       else np[s.chave] = s.valor
       return np
     })
+  }
+
+  async function analisarIA() {
+    if (!resumo.trim()) return
+    setIa('rodando')
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-extrair', { body: { texto: resumo } })
+      if (error || data?.error) throw new Error(data?.error || error.message)
+      if (data.recepcao) setRecepcao(data.recepcao)
+      if (data.proxima_acao) setProximaAcao(data.proxima_acao)
+      if (data.proxima_acao_data) setProximaData(data.proxima_acao_data)
+      if (data.obs_entorno) setObsEntorno((v) => v || data.obs_entorno)
+      const novos = Object.fromEntries(Object.entries(data.pessoais || {}).filter(([, v]) => v))
+      if (Object.keys(novos).length) setPessoais((p) => ({ ...p, ...novos }))
+      setIa('ok')
+    } catch (e) {
+      setIa('erro')
+    }
   }
 
   async function salvar() {
@@ -100,7 +119,28 @@ export default function RegistrarVisita() {
         <textarea className="input" value={resumo} onChange={(e) => setResumo(e.target.value)}
           placeholder="Toque em Falar e conte a visita…" autoFocus />
       </div>
-      <p className="hint">Toque em <b>Falar</b> e conte a visita (grátis). O sistema entende datas ("amanhã", "dia 20") e capta <b>pontos de relacionamento</b> (esposa, filhos, viagem, time) para lembrar na próxima visita — confirme nas sugestões abaixo.</p>
+      <div className="toolbar" style={{ marginBottom: 8 }}>
+        <button type="button" className="btn sm" onClick={analisarIA} disabled={ia === 'rodando' || !resumo.trim()}>
+          {ia === 'rodando' ? 'Analisando…' : 'Analisar com IA'}
+        </button>
+        {ia === 'ok' && <span className="pill g">campos preenchidos pela IA — revise</span>}
+        {ia === 'erro' && <span className="pill w">IA indisponível — sugestões por regra ativas</span>}
+      </div>
+      <p className="hint">Fale a visita e toque em <b>Analisar com IA</b>: recepção, próxima ação com data e pontos de relacionamento (esposa, filhos, viagem, time) são preenchidos automaticamente.</p>
+
+      {Object.keys(pessoais).length > 0 && (
+        <>
+          <label className="field" style={{ marginBottom: 4 }}><span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--faint)' }}>Pontos de relacionamento captados</span></label>
+          <div className="chips">
+            {Object.entries(pessoais).map(([k, v]) => (
+              <span className="chip on" key={k} style={{ cursor: 'pointer' }} title="Toque para remover"
+                onClick={() => setPessoais((p) => { const np = { ...p }; delete np[k]; return np })}>
+                {k}: {v} ✕
+              </span>
+            ))}
+          </div>
+        </>
+      )}
 
       {sugs.length > 0 && (
         <>

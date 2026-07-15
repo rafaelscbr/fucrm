@@ -1,68 +1,87 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { initials } from '../lib/format'
 import ThemeToggle from './ThemeToggle'
+import Icon from './Icon'
 import { PresenceProvider } from '../context/PresenceContext'
 
 const repNav = [
-  { to: '/', label: 'Início', icon: '⌂', end: true },
-  { to: '/clientes', label: 'Clientes', icon: '☰' },
-  { to: '/funil', label: 'Funil', icon: '▤' },
+  { to: '/', label: 'Início', icon: 'home', end: true },
+  { to: '/clientes', label: 'Clientes', icon: 'clientes' },
+  { to: '/funil', label: 'Funil', icon: 'funil' },
 ]
 const adminNav = [
-  { to: '/admin', label: 'Painel', icon: '▧', end: true },
-  { to: '/admin/aprovacoes', label: 'Aprovações', icon: '✓' },
-  { to: '/admin/representantes', label: 'Representantes', icon: '◐' },
-  { to: '/admin/territorios', label: 'Territórios', icon: '◭' },
-  { to: '/admin/carteira', label: 'Carteira interna', icon: '⊘' },
-  { to: '/admin/catalogo', label: 'Catálogo', icon: '▦' },
-  { to: '/admin/condicoes', label: 'Condições pgto', icon: '≋' },
-  { to: '/admin/empresa', label: 'Dados Fuplastic', icon: '▢' },
-  { to: '/admin/importar', label: 'Importar', icon: '↧' },
-  { to: '/admin/logs', label: 'Logs', icon: '☷' },
+  { to: '/admin/aprovacoes', label: 'Aprovações', icon: 'aprovacoes' },
+  { to: '/admin/representantes', label: 'Representantes', icon: 'reps' },
+  { to: '/admin/territorios', label: 'Territórios', icon: 'territorios' },
+  { to: '/admin/carteira', label: 'Carteira interna', icon: 'carteira' },
+  { to: '/admin/catalogo', label: 'Catálogo', icon: 'catalogo' },
+  { to: '/admin/condicoes', label: 'Condições pgto', icon: 'condicoes' },
+  { to: '/admin/empresa', label: 'Dados Fuplastic', icon: 'empresa' },
+  { to: '/admin/importar', label: 'Importar', icon: 'importar' },
+  { to: '/admin/logs', label: 'Logs', icon: 'logs' },
 ]
+
+function tituloDe(path, isGestor) {
+  if (path === '/') return isGestor ? 'Painel da operação' : 'Início'
+  const mapa = [
+    ['/clientes/novo', 'Novo cliente'], ['/clientes', 'Clientes'], ['/orcamentos/novo', 'Novo orçamento'],
+    ['/orcamentos', 'Orçamento'], ['/funil', 'Funil'], ['/admin/aprovacoes', 'Aprovações'],
+    ['/admin/representantes', 'Representantes'], ['/admin/territorios', 'Territórios'],
+    ['/admin/carteira', 'Carteira interna'], ['/admin/catalogo', 'Catálogo'], ['/admin/condicoes', 'Condições de pagamento'],
+    ['/admin/empresa', 'Dados Fuplastic'], ['/admin/importar', 'Importar carteira'], ['/admin/logs', 'Logs'],
+  ]
+  return (mapa.find(([p]) => path.startsWith(p)) || [null, 'FuCRM'])[1]
+}
 
 export default function Layout() {
   const { profile, signOut, isGestor } = useAuth()
+  const loc = useLocation()
   const cls = ({ isActive }) => (isActive ? 'on' : '')
-  const bottom = isGestor ? [...repNav, { to: '/admin', label: 'Admin', icon: '▧', end: true }] : repNav
+  const bottom = isGestor ? [...repNav, { to: '/admin/aprovacoes', label: 'Aprovar', icon: 'aprovacoes' }] : repNav
 
   return (
     <PresenceProvider>
-    <div className="shell">
-      <aside className="sidenav">
-        <div className="brand"><span className="dot">FU</span><b>FuCRM</b></div>
-        {repNav.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
-        ))}
-        {isGestor && (
-          <>
-            <div className="grp-lbl">Administração</div>
-            {adminNav.map((n) => (
-              <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
-            ))}
-          </>
-        )}
-        <div className="spacer" />
-        <button className="btn ghost" onClick={signOut}>Sair</button>
-      </aside>
+      <div className="shell">
+        <aside className="sidenav">
+          <div className="brand"><span className="dot">FU</span><b>FuCRM</b></div>
+          {repNav.map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.end} className={cls}><Icon name={n.icon} />{n.label}</NavLink>
+          ))}
+          {isGestor && (
+            <>
+              <div className="grp-lbl">Administração</div>
+              {adminNav.map((n) => (
+                <NavLink key={n.to} to={n.to} className={cls}><Icon name={n.icon} />{n.label}</NavLink>
+              ))}
+            </>
+          )}
+          <div className="spacer" />
+          <div className="me">
+            <span className="av">{initials(profile?.nome)}</span>
+            <div className="mi">
+              <div className="mn">{profile?.nome}</div>
+              <div className="mp">{profile?.papel}</div>
+            </div>
+            <button className="icon-btn" onClick={signOut} title="Sair" aria-label="Sair"><Icon name="sair" size={17} /></button>
+          </div>
+        </aside>
 
-      <div className="main">
-        <header className="topbar">
-          <span className="t">FuCRM</span>
-          <span className="muted" style={{ fontSize: 13 }}>{profile?.nome}</span>
-          <ThemeToggle />
-          <span className="av" title={profile?.nome}>{initials(profile?.nome)}</span>
-        </header>
-        <div className="content"><Outlet /></div>
+        <div className="main">
+          <header className="topbar">
+            <span className="t">{tituloDe(loc.pathname, isGestor)}</span>
+            <ThemeToggle />
+            <span className="av av-top" title={profile?.nome}>{initials(profile?.nome)}</span>
+          </header>
+          <div className="content"><Outlet /></div>
+        </div>
+
+        <nav className="bottomnav">
+          {bottom.map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic"><Icon name={n.icon} size={20} /></span>{n.label}</NavLink>
+          ))}
+        </nav>
       </div>
-
-      <nav className="bottomnav">
-        {bottom.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
-        ))}
-      </nav>
-    </div>
     </PresenceProvider>
   )
 }
