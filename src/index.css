@@ -29,23 +29,42 @@ h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-.01em}
 button{font-family:inherit}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:11px;
-  padding:12px 18px;font-weight:700;font-size:14px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
-.btn:disabled{opacity:.55;cursor:not-allowed}
+  padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.ghost{background:var(--sunk);color:var(--text);border:1px solid var(--border)}
+.btn.warn{background:var(--warn-soft);color:var(--warn)}
+.btn.danger{background:var(--danger-soft);color:var(--danger)}
+.btn.sm{padding:7px 12px;font-size:12.5px;border-radius:9px}
 .btn.block{width:100%}
 
-.input,.select{width:100%;background:var(--sunk);border:1px solid var(--border);border-radius:10px;
-  padding:12px 13px;font-size:15px;color:var(--text);font-family:inherit}
-.input:focus,.select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.input,.select,textarea.input{width:100%;background:var(--sunk);border:1px solid var(--border);border-radius:10px;
+  padding:11px 12px;font-size:15px;color:var(--text);font-family:inherit}
+textarea.input{resize:vertical;min-height:96px;line-height:1.5}
+.input:focus,.select:focus,textarea.input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .field label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+.grid-form{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.grid-form .full{grid-column:1 / -1}
+@media (max-width:640px){ .grid-form{grid-template-columns:1fr} }
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
-.muted{color:var(--muted)}
-.pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.03em}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.03em}
 .pill.g{background:var(--accent-soft);color:var(--accent-text)}
 .pill.w{background:var(--warn-soft);color:var(--warn)}
 .pill.r{background:var(--danger-soft);color:var(--danger)}
+.pill.i{background:var(--info-soft);color:var(--info)}
+.pill.n{background:var(--sunk);color:var(--muted);border:1px solid var(--border-soft)}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:6px;text-transform:uppercase}
+.tag.crit{background:var(--danger-soft);color:var(--danger)} .tag.key{background:var(--accent-soft);color:var(--accent-text)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+
+.banner{border-radius:10px;padding:11px 14px;font-size:13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:12px}
+.banner.accent{background:var(--accent-soft);color:var(--accent-text)}
+.banner.warn{background:var(--warn-soft);color:var(--warn)}
+.banner.danger{background:var(--danger-soft);color:var(--danger)}
+.banner.info{background:var(--info-soft);color:var(--info)}
+.banner b{font-weight:700}
 
 /* ---------- Login ---------- */
 .login-wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -66,8 +85,7 @@ button{font-family:inherit}
 .topbar .t{font-weight:800;font-size:16px;flex:1;min-width:0}
 .topbar .av{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
   display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 auto}
-.content{padding:18px;max-width:1000px;width:100%;margin:0 auto}
-
+.content{padding:18px;max-width:1080px;width:100%;margin:0 auto}
 .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;justify-content:space-around;
   background:var(--raised);border-top:1px solid var(--border-soft);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
 .bottomnav a{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--faint);
@@ -75,34 +93,124 @@ button{font-family:inherit}
 .bottomnav a .ic{font-size:19px;line-height:1}
 .bottomnav a.on{color:var(--accent-text)}
 
-/* ---------- Lists / rows ---------- */
+/* ---------- Lists / rows / heads ---------- */
 .row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);
-  border-radius:11px;padding:13px 15px;margin-bottom:10px}
+  border-radius:11px;padding:13px 15px;margin-bottom:10px;text-align:left;width:100%;cursor:pointer;color:inherit}
+.row.static{cursor:default}
 .row .l1{font-weight:700;font-size:14.5px}
 .row .l2{font-size:12.5px;color:var(--muted);margin-top:2px}
 .row .grow{flex:1;min-width:0}
 .page-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .page-head h1{font-size:22px}
+.back{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:0;margin-bottom:10px;font-weight:600}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.toolbar .input{flex:1;min-width:160px}
 .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
 .metric{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px}
-.metric .n{font-size:24px;font-weight:800}
+.metric .n{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}
 .metric .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.metric.accent{border-color:var(--accent)}
 .empty{text-align:center;color:var(--muted);padding:40px 20px}
 .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);
   border-radius:50%;animation:spin .8s linear infinite;margin:40px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ---------- Tabs ---------- */
+.tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto}
+.tab{flex:0 0 auto;padding:8px 14px;border-radius:9px;background:var(--sunk);color:var(--muted);
+  font-weight:600;font-size:13px;border:1px solid var(--border-soft);cursor:pointer}
+.tab.on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+
+/* ---------- Briefing / timeline ---------- */
+.briefing{border:1px solid var(--accent);background:var(--accent-soft);border-radius:12px;padding:15px 17px;margin-bottom:16px}
+.briefing .k{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-text);margin-bottom:8px}
+.briefing .line{font-size:14px;margin-bottom:5px}
+.meter{height:7px;border-radius:6px;background:var(--sunk);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.ev{border-left:2px solid var(--border);padding:0 0 14px 14px;position:relative;margin-left:6px}
+.ev::before{content:"";position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ev .h{font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.ev .b{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* ---------- Chips / seg (registro de visita) ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.chip{font-size:12.5px;padding:6px 11px;border-radius:20px;background:var(--raised);border:1px solid var(--border-soft);
+  color:var(--muted);cursor:pointer}
+.chip.sug{border-style:dashed;border-color:var(--accent);color:var(--accent-text)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:700}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;background:var(--sunk);border:1px solid var(--border);border-radius:11px;padding:12px 0;
+  font-size:20px;cursor:pointer;color:var(--text)}
+.seg button.on{background:var(--accent-soft);border-color:var(--accent)}
+.hint{font-size:12px;color:var(--faint);margin-top:-6px;margin-bottom:12px}
+
+/* ---------- Ficha TOTVS / sheet ---------- */
+.sheet{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:13.5px}
+.sheet-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:10px;background:var(--raised)}
+.sheet-h .src{font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--accent-ink);background:var(--accent);
+  padding:4px 10px;border-radius:6px}
+.grp{padding:13px 18px;border-bottom:1px solid var(--border-soft)}
+.grp .gt{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);font-weight:700;margin-bottom:8px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:7px 18px}
+.kv > div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--border-soft);padding-bottom:4px}
+.kv > div span:first-child{color:var(--muted)} .kv > div span:last-child{font-weight:600;text-align:right}
+.checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.checklist li{display:flex;gap:9px;font-size:13px;color:var(--muted)}
+.checklist li::before{content:"✓";color:var(--accent-text);font-weight:800}
+
+/* ---------- Kanban ---------- */
+.board{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px}
+.kcol{flex:0 0 200px;background:var(--sunk);border:1px solid var(--border-soft);border-radius:12px;padding:10px;min-height:120px}
+.kcol.drop{outline:2px dashed var(--accent);outline-offset:-3px}
+.kcol .kh{display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:12px;margin-bottom:9px}
+.kcol .kh .c{font-size:10.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border-soft);border-radius:20px;padding:1px 8px}
+.kcol.gate{border-color:var(--warn)} .kcol.gate .kh{color:var(--warn)}
+.kcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 11px;border-left:3px solid var(--accent);margin-bottom:8px;cursor:grab}
+.kcard .n1{font-size:12px;font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.kcard .n1 b{font-weight:800}
+.kcard .m{margin-top:6px;font-size:10.5px;color:var(--muted)}
+
+/* ---------- Admin table ---------- */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+table.tbl th{text-align:left;padding:11px 14px;background:var(--raised);color:var(--muted);font-size:11px;
+  text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+table.tbl td{padding:11px 14px;border-bottom:1px solid var(--border-soft)}
+table.tbl tr:last-child td{border-bottom:0}
+
+/* ---------- Modal ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;
+  padding:18px;z-index:50}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;width:100%;max-width:460px;
+  max-height:88vh;overflow:auto}
+
+.fab{position:fixed;right:18px;bottom:88px;z-index:7;background:var(--accent);color:var(--accent-ink);border:0;
+  border-radius:30px;padding:14px 20px;font-weight:800;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);cursor:pointer}
+
 /* ---------- Desktop ---------- */
 @media (min-width:860px){
   .main{padding-bottom:0}
   .bottomnav{display:none}
-  .sidenav{display:flex;flex-direction:column;width:230px;flex:0 0 auto;background:var(--surface);
-    border-right:1px solid var(--border);padding:20px 14px;position:sticky;top:0;height:100vh}
-  .sidenav .brand{margin:6px 8px 22px}
-  .sidenav a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;
-    color:var(--muted);font-weight:600;font-size:14px;margin-bottom:3px}
-  .sidenav a .ic{font-size:18px}
+  .fab{bottom:24px}
+  .sidenav{display:flex;flex-direction:column;width:236px;flex:0 0 auto;background:var(--surface);
+    border-right:1px solid var(--border);padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+  .sidenav .brand{margin:6px 8px 20px}
+  .sidenav .grp-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);
+    font-weight:700;margin:16px 10px 6px}
+  .sidenav a{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:10px;
+    color:var(--muted);font-weight:600;font-size:14px;margin-bottom:2px}
+  .sidenav a .ic{font-size:17px;width:18px;text-align:center}
   .sidenav a.on{background:var(--accent-soft);color:var(--accent-text)}
   .sidenav .spacer{flex:1}
   .metrics{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ---------- Print (PDF do orçamento) ---------- */
+@media print{
+  .no-print{display:none !important}
+  .sidenav,.bottomnav,.topbar,.fab{display:none !important}
+  body{background:#fff;color:#000}
+  .content{padding:0;max-width:none}
+  .sheet{border:0}
 }

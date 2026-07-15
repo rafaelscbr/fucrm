@@ -1,32 +1,43 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { initials } from '../lib/format'
 
-const nav = [
+const repNav = [
   { to: '/', label: 'Início', icon: '⌂', end: true },
   { to: '/clientes', label: 'Clientes', icon: '☰' },
   { to: '/funil', label: 'Funil', icon: '▤' },
 ]
-
-function initials(name = '?') {
-  return name.trim().slice(0, 2).toUpperCase()
-}
+const adminNav = [
+  { to: '/admin', label: 'Painel', icon: '▧', end: true },
+  { to: '/admin/aprovacoes', label: 'Aprovações', icon: '✓' },
+  { to: '/admin/representantes', label: 'Representantes', icon: '◐' },
+  { to: '/admin/territorios', label: 'Territórios', icon: '◭' },
+  { to: '/admin/carteira', label: 'Carteira interna', icon: '⊘' },
+  { to: '/admin/catalogo', label: 'Catálogo', icon: '▦' },
+  { to: '/admin/importar', label: 'Importar', icon: '↧' },
+  { to: '/admin/logs', label: 'Logs', icon: '☷' },
+]
 
 export default function Layout() {
-  const { profile, signOut } = useAuth()
+  const { profile, signOut, isGestor } = useAuth()
+  const cls = ({ isActive }) => (isActive ? 'on' : '')
+  const bottom = isGestor ? [...repNav, { to: '/admin', label: 'Admin', icon: '▧', end: true }] : repNav
 
   return (
     <div className="shell">
       <aside className="sidenav">
-        <div className="brand">
-          <span className="dot">Fu</span>
-          <b>FuCRM</b>
-        </div>
-        {nav.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => (isActive ? 'on' : '')}>
-            <span className="ic">{n.icon}</span>
-            {n.label}
-          </NavLink>
+        <div className="brand"><span className="dot">Fu</span><b>FuCRM</b></div>
+        {repNav.map((n) => (
+          <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
         ))}
+        {isGestor && (
+          <>
+            <div className="grp-lbl">Administração</div>
+            {adminNav.map((n) => (
+              <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
+            ))}
+          </>
+        )}
         <div className="spacer" />
         <button className="btn ghost" onClick={signOut}>Sair</button>
       </aside>
@@ -37,17 +48,12 @@ export default function Layout() {
           <span className="muted" style={{ fontSize: 13 }}>{profile?.nome}</span>
           <span className="av" title={profile?.nome}>{initials(profile?.nome)}</span>
         </header>
-        <div className="content">
-          <Outlet />
-        </div>
+        <div className="content"><Outlet /></div>
       </div>
 
       <nav className="bottomnav">
-        {nav.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => (isActive ? 'on' : '')}>
-            <span className="ic">{n.icon}</span>
-            {n.label}
-          </NavLink>
+        {bottom.map((n) => (
+          <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
         ))}
       </nav>
     </div>

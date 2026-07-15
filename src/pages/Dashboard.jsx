@@ -1,26 +1,35 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { dataBR } from '../lib/format'
 
 export default function Dashboard() {
-  const { profile } = useAuth()
+  const { profile, session } = useAuth()
+  const nav = useNavigate()
   const [stats, setStats] = useState(null)
+  const [acoes, setAcoes] = useState([])
 
   useEffect(() => {
     async function load() {
-      const [clientes, interacoes, orcamentos] = await Promise.all([
+      const hoje = new Date().toISOString().slice(0, 10)
+      const [clientes, interacoes, orcamentos, prox] = await Promise.all([
         supabase.from('clientes').select('id', { count: 'exact', head: true }),
         supabase.from('interacoes').select('id', { count: 'exact', head: true }),
         supabase.from('orcamentos').select('id', { count: 'exact', head: true }),
+        supabase.from('interacoes')
+          .select('id, proxima_acao, proxima_acao_data, cliente:clientes(id,razao_social)')
+          .eq('representante_id', session.user.id)
+          .not('proxima_acao', 'is', null)
+          .gte('proxima_acao_data', hoje)
+          .order('proxima_acao_data', { ascending: true })
+          .limit(6),
       ])
-      setStats({
-        clientes: clientes.count ?? 0,
-        interacoes: interacoes.count ?? 0,
-        orcamentos: orcamentos.count ?? 0,
-      })
+      setStats({ clientes: clientes.count ?? 0, interacoes: interacoes.count ?? 0, orcamentos: orcamentos.count ?? 0 })
+      setAcoes(prox.data || [])
     }
     load()
-  }, [])
+  }, [session])
 
   const hora = new Date().getHours()
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
@@ -38,16 +47,23 @@ export default function Dashboard() {
         <div className="metric"><div className="n">{stats?.clientes ?? '—'}</div><div className="k">Clientes</div></div>
         <div className="metric"><div className="n">{stats?.interacoes ?? '—'}</div><div className="k">Interações</div></div>
         <div className="metric"><div className="n">{stats?.orcamentos ?? '—'}</div><div className="k">Orçamentos</div></div>
-        <div className="metric"><div className="n">0</div><div className="k">Aniversários hoje</div></div>
+        <div className="metric"><div className="n">{acoes.length}</div><div className="k">Próximas ações</div></div>
       </div>
 
-      <div className="card">
-        <h3 style={{ fontSize: 16, marginBottom: 8 }}>Bem-vindo ao FuCRM 🌱</h3>
-        <p className="muted" style={{ fontSize: 14 }}>
-          O sistema está no ar e conectado ao banco. As próximas telas — registro de visita em 30s,
-          ficha de relacionamento, orçamento e Kanban — entram em seguida.
-        </p>
-      </div>
+      <h3 style={{ fontSize: 16, margin: '4px 0 12px' }}>Próximas ações</h3>
+      {acoes.length === 0 ? (
+        <div className="empty">Nada agendado. Registre uma visita e defina o próximo passo.</div>
+      ) : (
+        acoes.map((a) => (
+          <button className="row" key={a.id} onClick={() => nav(`/clientes/${a.cliente?.id}`)}>
+            <div className="grow">
+              <div className="l1">{a.cliente?.razao_social}</div>
+              <div className="l2">{a.proxima_acao}</div>
+            </div>
+            <span className="pill n">{dataBR(a.proxima_acao_data)}</span>
+          </button>
+        ))
+      )}
     </div>
   )
 }
