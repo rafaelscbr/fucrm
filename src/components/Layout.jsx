@@ -15,6 +15,8 @@ const adminNav = [
   { to: '/admin/territorios', label: 'Territórios', icon: '◭' },
   { to: '/admin/carteira', label: 'Carteira interna', icon: '⊘' },
   { to: '/admin/catalogo', label: 'Catálogo', icon: '▦' },
+  { to: '/admin/condicoes', label: 'Condições pgto', icon: '≋' },
+  { to: '/admin/empresa', label: 'Dados Fuplastic', icon: '▢' },
   { to: '/admin/importar', label: 'Importar', icon: '↧' },
   { to: '/admin/logs', label: 'Logs', icon: '☷' },
 ]

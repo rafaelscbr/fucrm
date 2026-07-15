@@ -8,7 +8,7 @@ export default function Aprovacoes() {
   const [orcs, setOrcs] = useState(null)
   useEffect(() => {
     supabase.from('orcamentos')
-      .select('id,numero,valor_total,cliente:clientes(razao_social,estado),rep:profiles(nome)')
+      .select('id,numero,valor_total,cliente:clientes(razao_social,estado),rep:profiles!representante_id(nome)')
       .eq('status', 'em_aprovacao').order('created_at', { ascending: true })
       .then(({ data }) => setOrcs(data || []))
   }, [])

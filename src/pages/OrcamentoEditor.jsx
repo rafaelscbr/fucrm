@@ -18,6 +18,7 @@ export default function OrcamentoEditor() {
   const [busca, setBusca] = useState('')
   const [itens, setItens] = useState([])
   const [cond, setCond] = useState('')
+  const [condicoes, setCondicoes] = useState([])
   const [frete, setFrete] = useState('FOB')
   const [valorFrete, setValorFrete] = useState('')
   const [peso, setPeso] = useState('')
@@ -28,6 +29,7 @@ export default function OrcamentoEditor() {
   useEffect(() => {
     if (clienteId) supabase.from('clientes').select('id,razao_social,estado,tipo_cliente').eq('id', clienteId).single().then(({ data }) => setCliente(data))
     supabase.from('produtos').select('*').eq('ativo', true).then(({ data }) => setProdutos(data || []))
+    supabase.from('condicoes_pagamento').select('*').eq('ativo', true).order('ordem').then(({ data }) => setCondicoes(data || []))
   }, [clienteId])
 
   const achados = useMemo(() => (busca.length < 2 ? [] : produtos.filter((p) => matchProduto(p, busca)).slice(0, 6)), [busca, produtos])
@@ -103,8 +105,11 @@ export default function OrcamentoEditor() {
       <p className="hint">Tabela de SC pendente — preço digitado manualmente por enquanto.</p>
 
       <div className="grid-form">
-        <div className="field"><label>Condição de pagamento (cód. TOTVS)</label>
-          <input className="input" value={cond} onChange={(e) => setCond(e.target.value)} placeholder="ex.: 007" /></div>
+        <div className="field"><label>Condição de pagamento</label>
+          <select className="select" value={cond} onChange={(e) => setCond(e.target.value)}>
+            <option value="">Selecione…</option>
+            {condicoes.map((c) => { const v = (c.codigo ? c.codigo + ' · ' : '') + c.descricao; return <option key={c.id} value={v}>{v}</option> })}
+          </select></div>
         <div className="field"><label>Tipo de frete</label>
           <select className="select" value={frete} onChange={(e) => setFrete(e.target.value)}>
             <option value="FOB">FOB</option><option value="CIF">CIF</option></select></div>

@@ -11,6 +11,11 @@ export default function OrcamentoPDF() {
   const [cli, setCli] = useState(null)
   const [itens, setItens] = useState([])
   const [rep, setRep] = useState(null)
+  const [empresa, setEmpresa] = useState(EMPRESA)
+
+  useEffect(() => {
+    supabase.from('empresa_config').select('*').eq('id', 1).single().then(({ data }) => { if (data) setEmpresa({ ...EMPRESA, ...data }) })
+  }, [])
 
   useEffect(() => {
     (async () => {
@@ -45,7 +50,6 @@ export default function OrcamentoPDF() {
             <div className="fu-mark">FU</div>
             <div>
               <div className="fu-name">FUPLASTIC</div>
-              <div className="fu-sub">Indústria e Comércio de Plásticos</div>
             </div>
           </div>
           <div className="doc-meta">
@@ -59,12 +63,12 @@ export default function OrcamentoPDF() {
           <div className="two-col">
             <section>
               <h4>Fornecedor</h4>
-              <div className="strong">{EMPRESA.fantasia}</div>
-              <div style={{ color: '#7a7c72', marginBottom: 6 }}>{EMPRESA.nome}</div>
-              <div className="kvp"><span>CNPJ</span><span>{EMPRESA.cnpj}</span></div>
-              <div className="kvp"><span>Insc. Estadual</span><span>{EMPRESA.ie}</span></div>
-              <div className="kvp"><span>Endereço</span><span>{EMPRESA.endereco}</span></div>
-              <div className="kvp"><span>Contato</span><span>{EMPRESA.email}</span></div>
+              <div className="strong">{empresa.fantasia}</div>
+              <div style={{ color: '#7a7c72', marginBottom: 6 }}>{empresa.nome}</div>
+              <div className="kvp"><span>CNPJ</span><span>{empresa.cnpj}</span></div>
+              <div className="kvp"><span>Insc. Estadual</span><span>{empresa.ie}</span></div>
+              <div className="kvp"><span>Endereço</span><span>{empresa.endereco}</span></div>
+              <div className="kvp"><span>Contato</span><span>{empresa.email}</span></div>
             </section>
             <section>
               <h4>Cliente</h4>
@@ -114,7 +118,7 @@ export default function OrcamentoPDF() {
               <h4>Cobrança</h4>
               <div className="kvp"><span>Pagamento</span><span>{o.condicao_pagamento || '—'}</span></div>
               <div className="kvp"><span>Tipo cliente</span><span>{tipoClienteLabel[cli.tipo_cliente]}</span></div>
-              <div className="kvp"><span>Filial</span><span>{EMPRESA.filial}</span></div>
+              <div className="kvp"><span>Filial</span><span>{empresa.filial}</span></div>
             </section>
             <section>
               <h4>Entrega</h4>
@@ -136,7 +140,7 @@ export default function OrcamentoPDF() {
               <div>Orçamento válido por 15 dias a partir da data de emissão.</div>
               <div style={{ marginTop: 2 }}>Vendedor: {rep?.nome || '—'}{rep?.codigo_vendedor_totvs ? ` · cód. ${rep.codigo_vendedor_totvs}` : ''}</div>
             </div>
-            <div className="doc-sign"><div className="line" />{EMPRESA.fantasia}</div>
+            <div className="doc-sign"><div className="line" />{empresa.fantasia}</div>
           </div>
         </div>
       </div>

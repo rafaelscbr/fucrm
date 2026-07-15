@@ -17,6 +17,8 @@ import Representantes from './pages/admin/Representantes'
 import Territorios from './pages/admin/Territorios'
 import CarteiraInterna from './pages/admin/CarteiraInterna'
 import Catalogo from './pages/admin/Catalogo'
+import CondicoesPagamento from './pages/admin/CondicoesPagamento'
+import DadosEmpresa from './pages/admin/DadosEmpresa'
 import Logs from './pages/admin/Logs'
 import ImportarCarteira from './pages/admin/ImportarCarteira'
 
@@ -34,12 +36,17 @@ function Gestor({ children }) {
   return children
 }
 
+function Home() {
+  const { isGestor } = useAuth()
+  return isGestor ? <AdminDashboard /> : <Dashboard />
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Protected><Layout /></Protected>}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<Home />} />
         <Route path="clientes" element={<Clientes />} />
         <Route path="clientes/novo" element={<ClienteNovo />} />
         <Route path="clientes/:id" element={<ClienteFicha />} />
@@ -54,6 +61,8 @@ export default function App() {
         <Route path="admin/territorios" element={<Gestor><Territorios /></Gestor>} />
         <Route path="admin/carteira" element={<Gestor><CarteiraInterna /></Gestor>} />
         <Route path="admin/catalogo" element={<Gestor><Catalogo /></Gestor>} />
+        <Route path="admin/condicoes" element={<Gestor><CondicoesPagamento /></Gestor>} />
+        <Route path="admin/empresa" element={<Gestor><DadosEmpresa /></Gestor>} />
         <Route path="admin/logs" element={<Gestor><Logs /></Gestor>} />
         <Route path="admin/importar" element={<Gestor><ImportarCarteira /></Gestor>} />
       </Route>
