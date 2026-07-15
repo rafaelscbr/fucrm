@@ -9,7 +9,8 @@ import InstallButton from './InstallButton'
 const repNav = [
   { to: '/', label: 'Início', icon: 'home', end: true },
   { to: '/clientes', label: 'Clientes', icon: 'clientes' },
-  { to: '/funil', label: 'Funil', icon: 'funil' },
+  { to: '/prospeccao', label: 'Prospecção', icon: 'prospeccao' },
+  { to: '/funil', label: 'Vendas', icon: 'funil' },
 ]
 const adminNav = [
   { to: '/admin/aprovacoes', label: 'Aprovações', icon: 'aprovacoes' },
