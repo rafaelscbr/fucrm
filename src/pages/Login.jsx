@@ -47,10 +47,10 @@ export default function Login() {
             {loading ? 'Entrando…' : 'Entrar'}
           </button>
         </form>
-        <div style={{ marginTop: 26, textAlign: 'center' }}>
-          <p className="faint" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 8 }}>Uma iniciativa</p>
-          <img src="/de-marchi-logo.png" alt="De Marchi Empreendimentos"
-            style={{ maxWidth: 190, width: '100%', borderRadius: 10 }} />
+        <div style={{ marginTop: 28, textAlign: 'center' }}>
+          <p className="faint" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '.14em', marginBottom: 10 }}>Uma iniciativa</p>
+          <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 600, letterSpacing: '.16em', color: 'var(--text)', lineHeight: 1, paddingLeft: '.16em' }}>DE&nbsp;MARCHI</div>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.4em', color: '#bb9440', marginTop: 7, paddingLeft: '.4em' }}>EMPREENDIMENTOS</div>
         </div>
       </div>
     </div>
