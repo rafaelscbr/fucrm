@@ -12,6 +12,7 @@ export default function MetasRanking() {
   const [periodo, setPeriodo] = useState(mesAtual())
   const [ds, setDs] = useState(null)
   const [f, setF] = useState(FORM0)
+  const [editId, setEditId] = useState(null)
 
   async function load() {
     const [metas, reps, orcs, inter] = await Promise.all([
@@ -49,12 +50,20 @@ export default function MetasRanking() {
     return { rank, metasPer }
   }, [ds, periodo])
 
-  async function addMeta() {
-    if (!f.valor || (f.escopo !== 'geral' && !f.alvo)) return
-    await supabase.from('metas').insert({ periodo, escopo: f.escopo, alvo: f.escopo === 'geral' ? null : f.alvo, metrica: f.metrica, valor: Number(f.valor) })
-    setF(FORM0); load()
+  function editarMeta(m) {
+    setEditId(m.id)
+    setF({ escopo: m.escopo, alvo: m.alvo || '', metrica: m.metrica, valor: String(m.valor) })
   }
-  async function delMeta(id) { await supabase.from('metas').delete().eq('id', id); load() }
+  function cancelarEdicao() { setEditId(null); setF(FORM0) }
+
+  async function salvarMeta() {
+    if (!f.valor || (f.escopo !== 'geral' && !f.alvo)) return
+    const payload = { escopo: f.escopo, alvo: f.escopo === 'geral' ? null : f.alvo, metrica: f.metrica, valor: Number(f.valor) }
+    if (editId) await supabase.from('metas').update(payload).eq('id', editId)
+    else await supabase.from('metas').insert({ periodo, ...payload })
+    cancelarEdicao(); load()
+  }
+  async function delMeta(id) { if (id === editId) cancelarEdicao(); await supabase.from('metas').delete().eq('id', id); load() }
 
   if (!calc) return <div className="spinner" />
 
@@ -91,7 +100,10 @@ export default function MetasRanking() {
               <div className="meta-row" key={m.id}>
                 <div className="meta-top">
                   <div><span className="meta-lbl">{m.label}</span> <span className="meta-metrica">· {METRICAS[m.metrica]}</span></div>
-                  <button className="btn danger sm" onClick={() => delMeta(m.id)}>remover</button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className="btn ghost sm" onClick={() => editarMeta(m)}>editar</button>
+                    <button className="btn danger sm" onClick={() => delMeta(m.id)}>remover</button>
+                  </div>
                 </div>
                 <div className="meter"><i style={{ width: Math.min(pct, 100) + '%', background: pct >= 100 ? 'var(--accent)' : undefined }} /></div>
                 <div className="meta-prog"><span>{fmt(m.metrica, m.real)} de {fmt(m.metrica, m.valor)}</span><b style={{ color: pct >= 100 ? 'var(--accent-text)' : 'var(--text)' }}>{pct}%</b></div>
@@ -102,7 +114,7 @@ export default function MetasRanking() {
       </div>
 
       <div className="panel">
-        <h3>Nova meta</h3>
+        <h3>{editId ? 'Editar meta' : 'Nova meta'}</h3>
         <div className="grid-form">
           <div className="field"><label>Escopo</label>
             <select className="select" value={f.escopo} onChange={(e) => setF({ ...f, escopo: e.target.value, alvo: '' })}>
@@ -131,7 +143,10 @@ export default function MetasRanking() {
           <div className="field"><label>Valor da meta</label>
             <input className="input" type="number" value={f.valor} onChange={(e) => setF({ ...f, valor: e.target.value })} placeholder={f.metrica === 'faturamento' ? 'R$' : 'quantidade'} /></div>
         </div>
-        <button className="btn" onClick={addMeta}>Adicionar meta em {periodo}</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn" onClick={salvarMeta}>{editId ? 'Salvar alterações' : `Adicionar meta em ${periodo}`}</button>
+          {editId && <button className="btn ghost" onClick={cancelarEdicao}>Cancelar</button>}
+        </div>
       </div>
     </div>
   )
