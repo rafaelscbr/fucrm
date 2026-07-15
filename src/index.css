@@ -186,6 +186,25 @@ textarea.input{resize:vertical;min-height:104px;line-height:1.55}
 .totvs-row .linkish{background:transparent;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit;min-width:0}
 .totvs-val{white-space:nowrap;font-size:14px}
 .totvs-row .btn.sm{flex:0 0 auto}
+/* ---------- Editor de orçamento (UX mobile) ---------- */
+.sec-h{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px;display:flex;align-items:center;gap:10px}
+.sec-h::after{content:'';flex:1;height:1px;background:var(--border-soft)}
+.qty-ctl{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:11px;overflow:hidden;background:var(--sunk)}
+.qty-ctl button{width:48px;min-height:46px;border:0;background:transparent;color:var(--text);font-size:22px;font-weight:700;cursor:pointer;line-height:1}
+.qty-ctl button:active{background:var(--accent-soft);color:var(--accent-text)}
+.qty-ctl input{flex:1;min-width:0;width:100%;border:0;background:transparent;text-align:center;font-size:16px;font-weight:700;color:var(--text);padding:10px 2px;font-family:inherit}
+.qty-ctl input:focus{outline:none}
+.qty-ctl input::-webkit-outer-spin-button,.qty-ctl input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qty-ctl input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.item-flash{animation:itemflash .9s ease}
+@keyframes itemflash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.orc-bar{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:center;gap:12px;
+  background:var(--raised);border:1px solid var(--border);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);margin-top:20px}
+.orc-bar .ob-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.orc-bar .ob-n{font-size:11px;color:var(--muted);font-weight:600}
+.orc-bar .ob-t{font-size:19px;font-weight:800;font-family:var(--font-head)}
+.orc-bar .btn{flex:0 0 auto}
+@media (min-width:860px){.orc-bar{bottom:12px}}
 .content{padding:18px;max-width:1080px;width:100%;margin:0 auto}
 .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;justify-content:space-around;
   background:var(--raised);border-top:1px solid var(--border-soft);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
