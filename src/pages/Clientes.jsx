@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { tipoClienteLabel } from '../lib/format'
+import { coordCidade } from '../lib/cidades'
+import { distanciaKm } from '../lib/rapport'
 import PullToRefresh from '../components/PullToRefresh'
 import Fab from '../components/Fab'
 
@@ -12,6 +14,7 @@ export default function Clientes() {
   const [clientes, setClientes] = useState(null)
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
+  const [userCoord, setUserCoord] = useState(null)
 
   const carregar = useCallback(async () => {
     const { data } = await supabase.from('clientes')
@@ -20,6 +23,16 @@ export default function Clientes() {
     setClientes(data || [])
   }, [])
   useEffect(() => { carregar() }, [carregar])
+
+  function ativarPerto() {
+    setFiltro('perto')
+    if (!userCoord && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (p) => setUserCoord([p.coords.longitude, p.coords.latitude]),
+        () => {},
+      )
+    }
+  }
 
   if (clientes === null) return <div className="spinner" />
 
@@ -30,6 +43,10 @@ export default function Clientes() {
     if (filtro === 'bloqueados') return c.bloqueado
     return true
   })
+  let lista = filtrados
+  if (filtro === 'perto' && userCoord) {
+    lista = filtrados.map((c) => ({ ...c, _d: distanciaKm(userCoord, coordCidade(c.cidade)) })).sort((a, b) => a._d - b._d)
+  }
 
   return (
     <>
@@ -42,15 +59,17 @@ export default function Clientes() {
           <input className="input" placeholder="Buscar por nome ou cidade…" value={busca} onChange={(e) => setBusca(e.target.value)} />
         </div>
         <div className="tabs">
-          {[['todos', 'Todos'], ['meus', 'Minha carteira'], ['bloqueados', 'Bloqueados']].map(([v, l]) => (
-            <button key={v} className={'tab ' + (filtro === v ? 'on' : '')} onClick={() => setFiltro(v)}>{l}</button>
+          {[['todos', 'Todos'], ['meus', 'Minha carteira'], ['perto', 'Perto de mim'], ['bloqueados', 'Bloqueados']].map(([v, l]) => (
+            <button key={v} className={'tab ' + (filtro === v ? 'on' : '')} onClick={() => (v === 'perto' ? ativarPerto() : setFiltro(v))}>{l}</button>
           ))}
         </div>
 
-        {filtrados.length === 0 ? (
+        {filtro === 'perto' && !userCoord ? (
+          <div className="empty">Permita o acesso à localização para ver os clientes mais próximos.</div>
+        ) : lista.length === 0 ? (
           <div className="empty">Nenhum cliente aqui.</div>
         ) : (
-          filtrados.map((c) => {
+          lista.map((c) => {
             const meu = c.representante_responsavel_id === session?.user?.id
             return (
               <button className="row" key={c.id} onClick={() => nav(`/clientes/${c.id}`)}>
@@ -58,6 +77,7 @@ export default function Clientes() {
                   <div className="l1">{c.razao_social}</div>
                   <div className="l2">
                     {[c.cidade, c.estado].filter(Boolean).join(' · ')}
+                    {c._d != null && isFinite(c._d) ? ` · ${Math.round(c._d)} km` : ''}
                     {c.tipo_cliente ? ` · ${tipoClienteLabel[c.tipo_cliente]}` : ''}
                   </div>
                 </div>

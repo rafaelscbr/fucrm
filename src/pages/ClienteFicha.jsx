@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { brl, tipoClienteLabel, statusLabel, canalLabel, tipoInteracaoLabel, diasAtras, dataBR } from '../lib/format'
 import EnderecosCliente from '../components/EnderecosCliente'
+import { waLink, TEMPLATES } from '../lib/whatsapp'
+import { rotaUrl } from '../lib/rapport'
 
 function healthScore(cli, inter) {
   let s = 0
@@ -21,11 +23,28 @@ function healthScore(cli, inter) {
 export default function ClienteFicha() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { session } = useAuth()
+  const { session, profile } = useAuth()
   const [cli, setCli] = useState(null)
   const [inter, setInter] = useState([])
   const [orcs, setOrcs] = useState([])
   const [tab, setTab] = useState('rel')
+  const [msgOpen, setMsgOpen] = useState(false)
+  const [resumoIA, setResumoIA] = useState(null)
+
+  async function analisarResumo() {
+    setResumoIA('loading')
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-resumo', {
+        body: {
+          cliente: { razao_social: cli.razao_social, cidade: cli.cidade, estado: cli.estado },
+          interacoes: inter.map((i) => ({ data: i.data, resumo: i.resumo, recepcao: i.recepcao })),
+          pessoais: cli.dados_pessoais || {},
+        },
+      })
+      if (error || data?.error) throw new Error()
+      setResumoIA(data)
+    } catch { setResumoIA('erro') }
+  }
 
   useEffect(() => {
     async function load() {
@@ -62,7 +81,37 @@ export default function ClienteFicha() {
       <div className="toolbar no-print">
         <Link className="btn" to={`/clientes/${id}/visita`}>＋ Registrar visita</Link>
         <Link className="btn ghost" to={`/orcamentos/novo?cliente=${id}`}>Novo orçamento</Link>
+        <button className="btn ghost" onClick={() => setMsgOpen(true)}>WhatsApp</button>
+        <a className="btn ghost" href={rotaUrl(cli)} target="_blank" rel="noreferrer">Rota</a>
+        <button className="btn ghost" onClick={analisarResumo} disabled={resumoIA === 'loading'}>{resumoIA === 'loading' ? 'Gerando…' : 'Resumo IA'}</button>
       </div>
+      {resumoIA && typeof resumoIA === 'object' && (
+        <div className="briefing no-print" style={{ marginBottom: 16 }}>
+          <div className="k">Briefing por IA</div>
+          <div className="line">{resumoIA.briefing}</div>
+          {(resumoIA.ganchos || []).map((g, i) => <div className="line" key={i}>• {g}</div>)}
+          {resumoIA.sugestao && <div className="line" style={{ marginTop: 6 }}><b>Próximo passo:</b> {resumoIA.sugestao}</div>}
+        </div>
+      )}
+      {resumoIA === 'erro' && <div className="banner warn no-print"><span>!</span><span>IA ocupada — tente de novo em instantes.</span></div>}
+
+      {msgOpen && (
+        <div className="modal-overlay no-print" onClick={(e) => e.target === e.currentTarget && setMsgOpen(false)}>
+          <div className="modal">
+            <h3 style={{ marginBottom: 12 }}>Mensagem no WhatsApp</h3>
+            {!cli.telefone && <div className="banner warn"><span>!</span><span>Cliente sem telefone — vai abrir o WhatsApp sem número.</span></div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {TEMPLATES.map((t) => (
+                <button className="row static" key={t.id} style={{ cursor: 'pointer' }}
+                  onClick={() => { window.open(waLink(cli.telefone, t.texto({ primeiro: cli.nome_fantasia || cli.razao_social, rep: (profile?.nome || '').split(' ')[0] })), '_blank'); setMsgOpen(false) }}>
+                  <div className="grow"><div className="l1">{t.nome}</div></div>
+                </button>
+              ))}
+            </div>
+            <button className="btn ghost" style={{ marginTop: 12, width: '100%' }} onClick={() => setMsgOpen(false)}>Fechar</button>
+          </div>
+        </div>
+      )}
 
       <div className="tabs">
         <button className={'tab ' + (tab === 'rel' ? 'on' : '')} onClick={() => setTab('rel')}>Relacionamento</button>

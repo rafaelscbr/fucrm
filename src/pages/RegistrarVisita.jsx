@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
+import { enfileirarVisita } from '../lib/offlineQueue'
 import { useAuth } from '../context/AuthContext'
 import { sugerir } from '../lib/sugestoes'
 import { logAudit } from '../lib/audit'
@@ -114,26 +115,37 @@ export default function RegistrarVisita() {
   async function salvar() {
     if (!resumo.trim()) return
     setSaving(true)
-    const { error } = await supabase.from('interacoes').insert({
+    const interacao = {
       cliente_id: id, representante_id: session.user.id, canal, tipo, resumo,
       recepcao, obs_entorno: obsEntorno || null,
       proxima_acao: proximaAcao || null, proxima_acao_data: proximaData || null,
-    })
-    if (!error && Object.keys(pessoais).length) {
+    }
+    const clUpdate = {}
+    if (Object.keys(pessoais).length) {
       const dp = { ...(cliente?.dados_pessoais || {}) }
       for (const [k, v] of Object.entries(pessoais)) {
         if (k === 'interesses' || k === 'familia') dp[k] = dp[k] ? dp[k] + '; ' + v : v
         else dp[k] = v
       }
-      await supabase.from('clientes').update({ dados_pessoais: dp }).eq('id', id)
+      clUpdate.dados_pessoais = dp
     }
-    if (!error && (tipo === 'primeira_demonstracao' || primeira)) {
-      await supabase.from('clientes').update({
-        data_primeiro_registro: cliente.data_primeiro_registro || new Date().toISOString(),
-        representante_primeiro_contato_id: session.user.id,
-        representante_responsavel_id: cliente.representante_responsavel_id || session.user.id,
-      }).eq('id', id)
+    if (tipo === 'primeira_demonstracao' || primeira) {
+      clUpdate.data_primeiro_registro = cliente?.data_primeiro_registro || new Date().toISOString()
+      clUpdate.representante_primeiro_contato_id = session.user.id
+      clUpdate.representante_responsavel_id = cliente?.representante_responsavel_id || session.user.id
     }
+    const extra = Object.keys(clUpdate).length ? { id, dados: clUpdate } : null
+
+    if (!navigator.onLine) {
+      enfileirarVisita(interacao, extra)
+      setSaving(false)
+      toast('Sem sinal — visita salva e será enviada ao reconectar')
+      nav(`/clientes/${id}`)
+      return
+    }
+
+    const { error } = await supabase.from('interacoes').insert(interacao)
+    if (!error && extra) await supabase.from('clientes').update(extra.dados).eq('id', id)
     setSaving(false)
     if (error) toast('Não foi possível salvar a visita.', 'erro')
     else { await logAudit('registrar_visita', 'cliente', id); toast('Visita registrada'); nav(`/clientes/${id}`) }

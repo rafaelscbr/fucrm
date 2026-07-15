@@ -4,6 +4,7 @@ import { initials } from '../lib/format'
 import ThemeToggle from './ThemeToggle'
 import Icon from './Icon'
 import { PresenceProvider } from '../context/PresenceContext'
+import InstallButton from './InstallButton'
 
 const repNav = [
   { to: '/', label: 'Início', icon: 'home', end: true },
@@ -57,6 +58,7 @@ export default function Layout() {
             </>
           )}
           <div className="spacer" />
+          <InstallButton />
           <div className="me">
             <span className="av">{initials(profile?.nome)}</span>
             <div className="mi">

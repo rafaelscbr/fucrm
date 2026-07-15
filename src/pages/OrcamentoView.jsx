@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { brl, statusLabel, tipoClienteLabel, dataBR } from '../lib/format'
 import { logAudit } from '../lib/audit'
+import { waLink } from '../lib/whatsapp'
 
 export default function OrcamentoView() {
   const { id } = useParams()
@@ -68,6 +69,7 @@ export default function OrcamentoView() {
           <button key={label} className={'btn sm ' + (kind || '')} onClick={fn}>{label}</button>
         ))}
         <button className="btn sm" onClick={() => nav(`/orcamentos/${id}/pdf`)}>Gerar PDF</button>
+        <button className="btn ghost sm" onClick={() => window.open(waLink(cli.telefone, `Olá! Segue o resumo do orçamento #${o.numero} — total ${brl(o.valor_total)}. Qualquer dúvida, estou à disposição!`), '_blank')}>WhatsApp</button>
       </div>
 
       <div className="sheet">
