@@ -14,6 +14,7 @@ const repNav = [
 ]
 const adminNav = [
   { to: '/admin/aprovacoes', label: 'Aprovações', icon: 'aprovacoes' },
+  { to: '/admin/metas', label: 'Metas & Ranking', icon: 'metas' },
   { to: '/admin/representantes', label: 'Representantes', icon: 'reps' },
   { to: '/admin/territorios', label: 'Territórios', icon: 'territorios' },
   { to: '/admin/carteira', label: 'Carteira interna', icon: 'carteira' },

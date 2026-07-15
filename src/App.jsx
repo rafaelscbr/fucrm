@@ -16,6 +16,7 @@ import Funil from './pages/Funil'
 import Prospeccao from './pages/Prospeccao'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import Aprovacoes from './pages/admin/Aprovacoes'
+import MetasRanking from './pages/admin/MetasRanking'
 import Representantes from './pages/admin/Representantes'
 import Territorios from './pages/admin/Territorios'
 import CarteiraInterna from './pages/admin/CarteiraInterna'
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="prospeccao" element={<Prospeccao />} />
         <Route path="admin" element={<Gestor><AdminDashboard /></Gestor>} />
         <Route path="admin/aprovacoes" element={<Gestor><Aprovacoes /></Gestor>} />
+        <Route path="admin/metas" element={<Gestor><MetasRanking /></Gestor>} />
         <Route path="admin/representantes" element={<Gestor><Representantes /></Gestor>} />
         <Route path="admin/territorios" element={<Gestor><Territorios /></Gestor>} />
         <Route path="admin/carteira" element={<Gestor><CarteiraInterna /></Gestor>} />

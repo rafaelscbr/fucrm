@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { dataBR } from '../lib/format'
+import { brl, dataBR } from '../lib/format'
 import { diasAteAniversario } from '../lib/rapport'
 import { waLink, TEMPLATES } from '../lib/whatsapp'
 
@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [acoes, setAcoes] = useState([])
   const [rel, setRel] = useState({ niver: [], reativar: [] })
+  const [metas, setMetas] = useState([])
 
   useEffect(() => {
     async function load() {
@@ -41,6 +42,22 @@ export default function Dashboard() {
         return d >= 60 && d <= 120
       }).slice(0, 6)
       setRel({ niver, reativar })
+
+      const per = new Date().toISOString().slice(0, 7)
+      const [{ data: mts }, { data: mOrcs }, { data: mInt }] = await Promise.all([
+        supabase.from('metas').select('*').eq('periodo', per).eq('escopo', 'representante').eq('alvo', session.user.id),
+        supabase.from('orcamentos').select('status,valor_total,created_at').eq('representante_id', session.user.id),
+        supabase.from('interacoes').select('tipo,resumo,data').eq('representante_id', session.user.id),
+      ])
+      const inMes = (dt) => (dt || '').slice(0, 7) === per
+      const real = (m) => {
+        if (m.metrica === 'faturamento') return (mOrcs || []).filter((o) => o.status === 'faturado' && inMes(o.created_at)).reduce((s, o) => s + Number(o.valor_total || 0), 0)
+        if (m.metrica === 'pedidos') return (mOrcs || []).filter((o) => ['aprovado', 'lancado_totvs', 'faturado'].includes(o.status) && inMes(o.created_at)).length
+        if (m.metrica === 'visitas') return (mInt || []).filter((i) => i.tipo !== 'ocorrencia' && inMes(i.data)).length
+        if (m.metrica === 'novos_clientes') return (mInt || []).filter((i) => i.resumo === 'Tornou-se Cliente' && inMes(i.data)).length
+        return 0
+      }
+      setMetas((mts || []).map((m) => ({ ...m, real: real(m) })))
     }
     load()
   }, [session])
@@ -64,6 +81,23 @@ export default function Dashboard() {
         <div className="metric"><div className="n">{acoes.length}</div><div className="k">Próximas ações</div></div>
       </div>
 
+      {metas.length > 0 && (
+        <>
+          <h3 style={{ fontSize: 16, margin: '4px 0 12px' }}>Minhas metas do mês</h3>
+          {metas.map((m) => {
+            const pct = m.valor ? Math.round(m.real / m.valor * 100) : 0
+            const lbl = { faturamento: 'Faturamento', pedidos: 'Pedidos', visitas: 'Visitas', novos_clientes: 'Novos clientes' }[m.metrica]
+            const ff = (v) => (m.metrica === 'faturamento' ? brl(v) : Math.round(v))
+            return (
+              <div className="meta-row" key={m.id}>
+                <div className="meta-top"><span className="meta-lbl">{lbl}</span><b style={{ color: pct >= 100 ? 'var(--accent-text)' : 'var(--muted)', fontSize: 13 }}>{pct}%</b></div>
+                <div className="meter"><i style={{ width: Math.min(pct, 100) + '%' }} /></div>
+                <div className="meta-prog"><span>{ff(m.real)} de {ff(m.valor)}</span></div>
+              </div>
+            )
+          })}
+        </>
+      )}
       {rel.niver.length > 0 && (
         <>
           <h3 style={{ fontSize: 16, margin: '4px 0 12px' }}>Aniversários próximos</h3>
