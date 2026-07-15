@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { buscarCep } from '../lib/cep'
 
 const EMPTY = { apelido: '', logradouro: '', numero: '', bairro: '', cidade: '', estado: '', cep: '', contato: '', telefone: '' }
 
@@ -8,6 +9,11 @@ export default function EnderecosCliente({ clienteId }) {
   const [f, setF] = useState(EMPTY)
   const [aberto, setAberto] = useState(false)
   const set = (k, v) => setF((s) => ({ ...s, [k]: v }))
+  async function onCepBlur() {
+    if ((f.cep || '').replace(/\D/g, '').length !== 8) return
+    const info = await buscarCep(f.cep)
+    if (info) setF((s) => ({ ...s, logradouro: s.logradouro || info.logradouro, bairro: s.bairro || info.bairro, cidade: info.cidade || s.cidade, estado: info.estado || s.estado }))
+  }
 
   async function load() {
     const { data } = await supabase.from('enderecos').select('*').eq('cliente_id', clienteId).order('created_at')
@@ -47,7 +53,7 @@ export default function EnderecosCliente({ clienteId }) {
         <div className="card" style={{ marginTop: 10 }}>
           <div className="grid-form">
             <div className="field"><label>Apelido</label><input className="input" value={f.apelido} onChange={(e) => set('apelido', e.target.value)} placeholder="Obra Centro / Depósito" /></div>
-            <div className="field"><label>CEP</label><input className="input" value={f.cep} onChange={(e) => set('cep', e.target.value)} /></div>
+            <div className="field"><label>CEP</label><input className="input" value={f.cep} onChange={(e) => set('cep', e.target.value)} onBlur={onCepBlur} placeholder="00000-000" /></div>
             <div className="field full"><label>Logradouro</label><input className="input" value={f.logradouro} onChange={(e) => set('logradouro', e.target.value)} /></div>
             <div className="field"><label>Número</label><input className="input" value={f.numero} onChange={(e) => set('numero', e.target.value)} /></div>
             <div className="field"><label>Bairro</label><input className="input" value={f.bairro} onChange={(e) => set('bairro', e.target.value)} /></div>

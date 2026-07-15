@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { sugerir } from '../lib/sugestoes'
 import { logAudit } from '../lib/audit'
+import VoiceButton from '../components/VoiceButton'
 
 const RECEPCOES = [['boa', '😀'], ['neutra', '😐'], ['ruim', '🙁']]
 
@@ -40,7 +41,7 @@ export default function RegistrarVisita() {
     if (s.campo === 'obs_entorno') setObsEntorno((v) => v || s.valor)
     if (s.campo === 'proxima_acao') {
       setProximaAcao(s.valor)
-      if (s.dias) setProximaData(new Date(Date.now() + s.dias * 86400000).toISOString().slice(0, 10))
+      if (s.data) setProximaData(s.data)
     }
   }
 
@@ -77,11 +78,14 @@ export default function RegistrarVisita() {
       {primeira && <div className="banner accent"><span>◎</span><span><b>1ª demonstração.</b> Ao salvar, este cliente fica atribuído a você.</span></div>}
 
       <div className="field">
-        <label>O que rolou? *</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <label style={{ margin: 0 }}>O que rolou? *</label>
+          <VoiceButton onResult={setResumo} />
+        </div>
         <textarea className="input" value={resumo} onChange={(e) => setResumo(e.target.value)}
-          placeholder="Toque no microfone do teclado e fale…" autoFocus />
+          placeholder="Toque em Falar e conte a visita…" autoFocus />
       </div>
-      <p className="hint">🎙️ Dica: use o microfone do teclado do celular para ditar — grátis, sem digitar.</p>
+      <p className="hint">Toque em <b>Falar</b> para ditar por voz (grátis). O sistema entende datas como “amanhã” ou “dia 20” e já sugere a próxima ação.</p>
 
       {sugs.length > 0 && (
         <>
