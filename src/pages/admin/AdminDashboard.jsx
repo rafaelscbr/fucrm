@@ -46,7 +46,7 @@ export default function AdminDashboard() {
         supabase.from('interacoes').select('representante_id,data'),
         supabase.from('clientes').select('cidade,estado,representante_responsavel_id'),
         supabase.from('profiles').select('id,nome,papel'),
-        supabase.from('territorios').select('id,definicao'),
+        supabase.from('territorios').select('id,nome,definicao'),
         supabase.from('representante_territorios').select('*'),
       ])
       setD({ orcs: orcs.data || [], visitas: visitas.data || [], clientes: clientes.data || [], reps: reps.data || [], terr: terr.data || [], links: links.data || [] })
@@ -89,18 +89,28 @@ export default function AdminDashboard() {
     }).sort((a, b) => b.faturado - a.faturado || b.pedidos - a.pedidos)
 
     const porCidade = {}
-    clientes.forEach((c) => { const cc = coordCidade(c.cidade); if (cc) { porCidade[c.cidade] = porCidade[c.cidade] || { coordinates: cc, count: 0 }; porCidade[c.cidade].count++ } })
+    clientes.forEach((c) => { const cc = coordCidade(c.cidade); if (cc) { porCidade[c.cidade] = porCidade[c.cidade] || { coordinates: cc, count: 0, uf: c.estado }; porCidade[c.cidade].count++ } })
 
-    const repMarkers = reps.filter((r) => r.papel === 'representante').map((r) => {
+    const CORES = ['#4f8fe0', '#7c6ff0', '#e3a53a', '#e5544e', '#0ea5b7', '#c0559b']
+    const repsR = reps.filter((r) => r.papel === 'representante')
+    const repMarkers = []
+    const repLegend = []
+    repsR.forEach((r, idx) => {
+      const cor = CORES[idx % CORES.length]
       const tIds = links.filter((l) => l.representante_id === r.id).map((l) => l.territorio_id)
-      let coord = null
-      for (const t of terr.filter((x) => tIds.includes(x.id))) {
-        for (const c of (t.definicao?.cidades || [])) { const cc = coordCidade(c); if (cc) { coord = cc; break } }
+      const meusTerrs = terr.filter((x) => tIds.includes(x.id))
+      let coord = null; let base = null
+      for (const t of meusTerrs) {
+        for (const cid of (t.definicao?.cidades || [])) { const cc = coordCidade(cid); if (cc) { coord = cc; base = cid; break } }
         if (coord) break
       }
-      if (!coord) { const cli = clientes.find((c) => c.representante_responsavel_id === r.id && coordCidade(c.cidade)); if (cli) coord = coordCidade(cli.cidade) }
-      return coord ? { coordinates: coord, label: r.nome.split(' ')[0], color: '#4f8fe0', r: 9 } : null
-    }).filter(Boolean)
+      if (!coord) { const cli = clientes.find((c) => c.representante_responsavel_id === r.id && coordCidade(c.cidade)); if (cli) { coord = coordCidade(cli.cidade); base = cli.cidade } }
+      if (coord) repMarkers.push({ coordinates: coord, label: r.nome.split(' ')[0], color: cor, r: 9 })
+      repLegend.push({
+        nome: r.nome, cor,
+        area: meusTerrs.length ? meusTerrs.map((t) => t.nome).join(', ') : (base ? `Base: ${base}` : 'Sem território definido'),
+      })
+    })
 
     return {
       faturado, nFat, pedidos, nGanhos,
@@ -116,9 +126,9 @@ export default function AdminDashboard() {
       donut: STATUS.map(([st, label]) => ({ label, color: STATUS_COR[st], value: cnt(oP, (o) => o.status === st) })).filter((x) => x.value > 0),
       repFat: perf.filter((p) => p.faturado > 0 || p.pipeline > 0).map((p) => ({ label: p.nome.split(' ')[0], fat: Math.round(p.faturado), pipe: Math.round(p.pipeline) })),
       perf,
-      clienteMarkers: Object.entries(porCidade).map(([label, v]) => ({ coordinates: v.coordinates, r: Math.min(9 + v.count * 2, 19), color: '#00a838', num: v.count })),
-      cityRank: Object.entries(porCidade).map(([cidade, v]) => ({ cidade, count: v.count })).sort((a, b) => b.count - a.count),
-      repMarkers,
+      clienteMarkers: Object.entries(porCidade).map(([label, v]) => ({ coordinates: v.coordinates, r: Math.min(9 + v.count * 2, 19), color: '#00a838', num: v.count, label })),
+      cityRank: Object.entries(porCidade).map(([cidade, v]) => ({ cidade, uf: v.uf, count: v.count })).sort((a, b) => b.count - a.count),
+      repMarkers, repLegend,
     }
   }, [d, periodo])
 
@@ -273,7 +283,7 @@ export default function AdminDashboard() {
           <div className="city-list" role="list" aria-label="Clientes por cidade">
             {c.cityRank.map((x) => (
               <div className="ci" role="listitem" key={x.cidade}>
-                <span>{x.cidade}</span><b>{x.count}</b>
+                <span>{x.cidade} <span className="faint">· {x.uf || '—'}</span></span><b>{x.count}</b>
                 <span className="bar"><i style={{ width: (x.count / c.cityRank[0].count * 100) + '%' }} /></span>
               </div>
             ))}
@@ -283,8 +293,23 @@ export default function AdminDashboard() {
 
       <div className="map-card">
         <h3>Territórios dos representantes</h3>
-        <div className="sub">Pino na região de atuação de cada representante</div>
-        <MapaBrasil mode="label" markers={c.repMarkers} fontSize={16} height={470} ariaLabel="Mapa com a região de cada representante" />
+        <div className="sub">Cada cor é um representante · a legenda mostra o território</div>
+        <div className="map-flex">
+          <div className="mapa">
+            <MapaBrasil mode="label" markers={c.repMarkers} fontSize={15} height={470} ariaLabel="Mapa com a região de cada representante" />
+          </div>
+          <div className="city-list" role="list" aria-label="Legenda de representantes">
+            {c.repLegend.map((l) => (
+              <div className="ci" role="listitem" key={l.nome}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}>
+                  <span className="dot-sm" style={{ background: l.cor }} />{l.nome}
+                </span>
+                <b />
+                <span style={{ gridColumn: '1 / -1', fontSize: 11.5, color: 'var(--faint)' }}>{l.area}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

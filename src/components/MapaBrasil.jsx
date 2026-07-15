@@ -4,13 +4,19 @@ import { geoMercator } from 'd3-geo'
 
 const GEO = 'https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/brazil-states.geojson'
 const SUL = ['Paraná', 'Santa Catarina', 'Rio Grande do Sul']
+const UFS = [
+  { sigla: 'PR', coordinates: [-51.8, -24.7] },
+  { sigla: 'SC', coordinates: [-51.3, -27.15] },
+  { sigla: 'RS', coordinates: [-54.2, -29.9] },
+]
 const W = 800
 
 const rct = (x, y, w, h) => ({ x, y, w, h })
 const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
 
-// Layout de rótulos sem sobreposição (usado só no modo "label", para POUCOS pinos).
-function montarLayout(markers, center, scale, height, fontSize) {
+// Layout de rótulos: testa posições candidatas; se não couber sem colidir,
+// força a mais afastada (force=true) ou OCULTA o rótulo (force=false — a lista lateral cobre).
+function montarLayout(markers, center, scale, height, fontSize, force) {
   const proj = geoMercator().center(center).scale(scale).translate([W / 2, height / 2])
   const grupos = {}
   markers.forEach((m) => { const k = m.coordinates.join(','); (grupos[k] = grupos[k] || []).push(m) })
@@ -28,9 +34,9 @@ function montarLayout(markers, center, scale, height, fontSize) {
     const w = p.label.length * fontSize * 0.62 + 8
     const h = fontSize * 1.3
     const cands = [
-      { dx: 0, dy: -(r + 8), a: 'middle' }, { dx: 0, dy: r + 8 + h * 0.72, a: 'middle' },
-      { dx: r + 9, dy: h * 0.28, a: 'start' }, { dx: -(r + 9), dy: h * 0.28, a: 'end' },
-      { dx: 0, dy: -(r + 10 + h), a: 'middle' }, { dx: 0, dy: r + 14 + h, a: 'middle' },
+      { dx: 0, dy: -(r + 7), a: 'middle' }, { dx: 0, dy: r + 7 + h * 0.72, a: 'middle' },
+      { dx: r + 8, dy: h * 0.28, a: 'start' }, { dx: -(r + 8), dy: h * 0.28, a: 'end' },
+      { dx: 0, dy: -(r + 9 + h), a: 'middle' }, { dx: 0, dy: r + 13 + h, a: 'middle' },
     ]
     let esc = null
     for (const c of cands) {
@@ -39,7 +45,10 @@ function montarLayout(markers, center, scale, height, fontSize) {
         : c.a === 'start' ? rct(lx, p.gy + c.dy - h * 0.8, w, h) : rct(lx - w, p.gy + c.dy - h * 0.8, w, h)
       if (!ocupados.some((o) => hit(o, box))) { esc = { ...c, box }; break }
     }
-    if (!esc) { const c = cands[4]; esc = { ...c, box: rct(p.gx - w / 2, p.gy + c.dy - h * 0.8, w, h) } }
+    if (!esc) {
+      if (!force) return { ...p, lab: null }             // sem espaço → oculta (lista cobre)
+      const c = cands[4]; esc = { ...c, box: rct(p.gx - w / 2, p.gy + c.dy - h * 0.8, w, h) }
+    }
     ocupados.push(esc.box)
     return { ...p, lab: esc }
   })
@@ -47,17 +56,12 @@ function montarLayout(markers, center, scale, height, fontSize) {
 
 export default function MapaBrasil({
   markers = [], mode = 'num', center = [-52.4, -28.1], scale = 1750, height = 500,
-  fontSize = 15, ariaLabel = 'Mapa da região Sul do Brasil',
+  fontSize = 14, ariaLabel = 'Mapa da região Sul do Brasil',
 }) {
-  const prontos = useMemo(() => (
-    mode === 'label' ? montarLayout(markers, center, scale, height, fontSize) : (() => {
-      const grupos = {}
-      markers.forEach((m) => { const k = m.coordinates.join(','); (grupos[k] = grupos[k] || []).push(m) })
-      const out = []
-      Object.values(grupos).forEach((g) => g.forEach((m, i) => out.push({ ...m, shift: (i - (g.length - 1) / 2) * ((m.r || 10) * 2 + 6), lab: null })))
-      return out
-    })()
-  ), [markers, mode, center, scale, height, fontSize])
+  const prontos = useMemo(
+    () => montarLayout(markers, center, scale, height, fontSize, mode === 'label'),
+    [markers, mode, center, scale, height, fontSize],
+  )
 
   return (
     <ComposableMap width={W} projection="geoMercator" projectionConfig={{ center, scale }} height={height}
@@ -75,6 +79,16 @@ export default function MapaBrasil({
             )
           })}
         </Geographies>
+
+        {UFS.map((u) => (
+          <Marker key={u.sigla} coordinates={u.coordinates}>
+            <text textAnchor="middle"
+              style={{ fontFamily: 'Sora, Inter, sans-serif', fontSize: 30, fontWeight: 800, fill: 'var(--faint)', opacity: 0.42, letterSpacing: 3 }}>
+              {u.sigla}
+            </text>
+          </Marker>
+        ))}
+
         {prontos.map((m, i) => {
           const r = m.r || (mode === 'num' ? 11 : 9)
           return (
@@ -87,9 +101,9 @@ export default function MapaBrasil({
                     {m.num}
                   </text>
                 )}
-                {mode === 'label' && m.lab && (
+                {m.lab && (
                   <text textAnchor={m.lab.a} x={m.lab.dx} y={m.lab.dy}
-                    style={{ fontFamily: 'Inter, sans-serif', fontSize, fontWeight: 700, fill: 'var(--text)', paintOrder: 'stroke', stroke: 'var(--bg)', strokeWidth: 5, strokeLinejoin: 'round' }}>
+                    style={{ fontFamily: 'Inter, sans-serif', fontSize, fontWeight: 700, fill: 'var(--text)', paintOrder: 'stroke', stroke: 'var(--bg)', strokeWidth: 4.5, strokeLinejoin: 'round' }}>
                     {m.label}
                   </text>
                 )}
