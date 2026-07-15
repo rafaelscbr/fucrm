@@ -75,7 +75,10 @@ export default function ClienteFicha() {
             {[cli.cidade, cli.estado].filter(Boolean).join(' · ')} · {tipoClienteLabel[cli.tipo_cliente]}
           </p>
         </div>
-        {cli.bloqueado ? <span className="pill r">bloqueado</span> : meu ? <span className="pill g">meu</span> : <span className="pill w">outro rep</span>}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <span className="pill n">{({ lead: 'Lead', prospect: 'Prospect', cliente: 'Cliente', descartado: 'Descartado' })[cli.estagio] || cli.estagio}</span>
+          {cli.bloqueado ? <span className="pill r">bloqueado</span> : meu ? <span className="pill g">meu</span> : <span className="pill w">outro rep</span>}
+        </div>
       </div>
 
       <div className="toolbar no-print">
