@@ -21,11 +21,12 @@ export default function RegistrarVisita() {
   const [proximaAcao, setProximaAcao] = useState('')
   const [proximaData, setProximaData] = useState('')
   const [aplicadas, setAplicadas] = useState({})
+  const [pessoais, setPessoais] = useState({})
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     supabase.from('clientes')
-      .select('id,razao_social,data_primeiro_registro,representante_responsavel_id')
+      .select('id,razao_social,data_primeiro_registro,representante_responsavel_id,dados_pessoais')
       .eq('id', id).single().then(({ data }) => {
         setCliente(data)
         if (data && !data.data_primeiro_registro) setTipo('primeira_demonstracao')
@@ -43,6 +44,12 @@ export default function RegistrarVisita() {
       setProximaAcao(s.valor)
       if (s.data) setProximaData(s.data)
     }
+    if (s.campo === 'pessoal') setPessoais((p) => {
+      const np = { ...p }
+      if (s.chave === 'interesses' || s.chave === 'familia') np[s.chave] = np[s.chave] ? np[s.chave] + '; ' + s.valor : s.valor
+      else np[s.chave] = s.valor
+      return np
+    })
   }
 
   async function salvar() {
@@ -53,6 +60,14 @@ export default function RegistrarVisita() {
       recepcao, obs_entorno: obsEntorno || null,
       proxima_acao: proximaAcao || null, proxima_acao_data: proximaData || null,
     })
+    if (!error && Object.keys(pessoais).length) {
+      const dp = { ...(cliente?.dados_pessoais || {}) }
+      for (const [k, v] of Object.entries(pessoais)) {
+        if (k === 'interesses' || k === 'familia') dp[k] = dp[k] ? dp[k] + '; ' + v : v
+        else dp[k] = v
+      }
+      await supabase.from('clientes').update({ dados_pessoais: dp }).eq('id', id)
+    }
     if (!error && (tipo === 'primeira_demonstracao' || primeira)) {
       await supabase.from('clientes').update({
         data_primeiro_registro: cliente.data_primeiro_registro || new Date().toISOString(),
@@ -85,7 +100,7 @@ export default function RegistrarVisita() {
         <textarea className="input" value={resumo} onChange={(e) => setResumo(e.target.value)}
           placeholder="Toque em Falar e conte a visita…" autoFocus />
       </div>
-      <p className="hint">Toque em <b>Falar</b> para ditar por voz (grátis). O sistema entende datas como “amanhã” ou “dia 20” e já sugere a próxima ação.</p>
+      <p className="hint">Toque em <b>Falar</b> e conte a visita (grátis). O sistema entende datas ("amanhã", "dia 20") e capta <b>pontos de relacionamento</b> (esposa, filhos, viagem, time) para lembrar na próxima visita — confirme nas sugestões abaixo.</p>
 
       {sugs.length > 0 && (
         <>

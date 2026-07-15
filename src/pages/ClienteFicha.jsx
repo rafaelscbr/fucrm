@@ -41,6 +41,8 @@ export default function ClienteFicha() {
 
   if (!cli) return <div className="spinner" />
   const dp = cli.dados_pessoais || {}
+  const PLBL = { aniversario: 'Aniversário', esposa: 'Esposa', marido: 'Marido', filha: 'Filha', filho: 'Filho', filhos: 'Filhos', familia: 'Família', interesses: 'Interesses', perfil: 'Perfil', historias: 'Histórias' }
+  const pontos = Object.entries(dp).filter(([, v]) => v && typeof v === 'string')
   const score = healthScore(cli, inter)
   const meu = cli.representante_responsavel_id === session?.user?.id
 
@@ -72,11 +74,10 @@ export default function ClienteFicha() {
       {tab === 'rel' && (
         <>
           <div className="briefing">
-            <div className="k">◆ Antes de visitar</div>
-            {dp.aniversario && <div className="line">🎂 Aniversário: <b>{dp.aniversario}</b></div>}
-            {dp.familia && <div className="line">👨‍👩‍👧 {dp.familia}</div>}
-            {dp.interesses && <div className="line">⚽ {dp.interesses}</div>}
-            <div className="line">💬 Última: {inter[0] ? `“${(inter[0].resumo || '').slice(0, 60)}” · ${diasAtras(inter[0].data)}` : 'sem contato ainda'}</div>
+            <div className="k">Antes de visitar — pontos para lembrar</div>
+            {pontos.length === 0 && !inter[0] && <div className="line">Ainda sem informações de relacionamento. Registre uma visita.</div>}
+            {pontos.map(([k, v]) => (<div className="line" key={k}><b>{PLBL[k] || k}:</b> {v}</div>))}
+            <div className="line"><b>Última conversa:</b> {inter[0] ? `“${(inter[0].resumo || '').slice(0, 70)}” · ${diasAtras(inter[0].data)}` : 'sem contato ainda'}</div>
             <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted)', display: 'flex', justifyContent: 'space-between' }}>
               <span>Saúde do relacionamento</span><span>{score}/100</span>
             </div>
