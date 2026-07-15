@@ -1,8 +1,12 @@
 // FuCRM service worker — app instalável e que abre offline (cache do app shell).
-const CACHE = 'fucrm-shell-v1'
+const CACHE = 'fucrm-shell-v2'
 
 self.addEventListener('install', () => self.skipWaiting())
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))
+self.addEventListener('activate', (e) => e.waitUntil(
+  caches.keys()
+    .then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    .then(() => self.clients.claim()),
+))
 
 self.addEventListener('fetch', (e) => {
   const req = e.request
