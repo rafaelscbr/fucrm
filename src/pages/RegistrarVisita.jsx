@@ -182,7 +182,7 @@ export default function RegistrarVisita() {
                 <MicSVG />
               </button>
               <p className="muted" style={{ fontSize: 14 }}>
-                {gravando ? 'Ouvindo… toque para parar e analisar' : ia === 'rodando' ? 'Analisando com IA…' : fala ? 'Toque para regravar' : 'Toque para gravar'}
+                {gravando ? 'Ouvindo… toque para parar e analisar' : ia === 'rodando' ? 'Analisando com IA… pode levar alguns segundos' : fala ? 'Toque para regravar' : 'Toque para gravar'}
               </p>
               {fala && <div className="transcript" style={{ textAlign: 'left' }}>“{fala}”</div>}
               {fala && !gravando && ia !== 'rodando' && ia !== 'ok' && (
@@ -192,7 +192,7 @@ export default function RegistrarVisita() {
           )}
 
           {ia === 'ok' && <div className="banner accent"><span>✓</span><span><b>A IA preencheu os campos abaixo.</b> Revise e confirme antes de salvar.</span></div>}
-          {ia === 'erro' && <div className="banner warn"><span>!</span><span>IA indisponível agora — texto mantido e sugestões por regra ativas.</span></div>}
+          {ia === 'erro' && <div className="banner warn"><span>!</span><span><b>IA ocupada neste momento</b> (limite momentâneo do plano gratuito). Seu texto foi mantido — toque em <b>Analisar com IA</b> de novo em alguns segundos, ou salve assim mesmo.</span></div>}
 
           {(modo === 'texto' || resumo || ia === 'ok') && (
             <div className="field">
