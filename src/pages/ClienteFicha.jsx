@@ -142,7 +142,7 @@ export default function ClienteFicha() {
             inter.map((ev) => (
               <div className="ev" key={ev.id}>
                 <div className="h">
-                  <span>{canalLabel[ev.canal]} · {tipoInteracaoLabel[ev.tipo]}</span>
+                  <span>{ev.tipo === 'ocorrencia' ? '● Evento' : `${canalLabel[ev.canal]} · ${tipoInteracaoLabel[ev.tipo]}`}</span>
                   <span className="faint" style={{ fontWeight: 500 }}>{diasAtras(ev.data)}</span>
                 </div>
                 <div className="b">

@@ -6,7 +6,8 @@ import { useToast } from '../context/ToastContext'
 import { logAudit } from '../lib/audit'
 
 const COLS = [
-  ['lead', 'Lead', 'contato ainda não feito', '#5aa2f0'],
+  ['lead', 'Lead', 'novo, sem contato', '#5aa2f0'],
+  ['tentativa', 'Tentativa de contato', 'aguardando resposta', '#5aa2f0'],
   ['prospect', 'Prospect', 'contato feito, avaliando', '#e3a53a'],
   ['cliente', 'Cliente', 'orçamento aprovado', '#00a838'],
   ['descartado', 'Descartado', 'não avançou', '#94a3b8'],
@@ -77,7 +78,7 @@ export default function Prospeccao() {
   }
 
   if (clientes === null) return <div className="spinner" />
-  const abertos = clientes.filter((c) => c.estagio === 'lead' || c.estagio === 'prospect').length
+  const abertos = clientes.filter((c) => ['lead', 'tentativa', 'prospect'].includes(c.estagio)).length
 
   return (
     <div>
