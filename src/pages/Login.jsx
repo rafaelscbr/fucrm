@@ -24,7 +24,7 @@ export default function Login() {
     <div className="login-wrap">
       <div className="login-card">
         <div className="brand">
-          <span className="dot">Fu</span>
+          <span className="dot">FU</span>
           <b>FuCRM</b>
         </div>
         <h1 style={{ fontSize: 22, marginBottom: 6 }}>Entrar</h1>

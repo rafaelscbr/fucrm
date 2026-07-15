@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { initials } from '../lib/format'
+import ThemeToggle from './ThemeToggle'
 
 const repNav = [
   { to: '/', label: 'Início', icon: '⌂', end: true },
@@ -26,7 +27,7 @@ export default function Layout() {
   return (
     <div className="shell">
       <aside className="sidenav">
-        <div className="brand"><span className="dot">Fu</span><b>FuCRM</b></div>
+        <div className="brand"><span className="dot">FU</span><b>FuCRM</b></div>
         {repNav.map((n) => (
           <NavLink key={n.to} to={n.to} end={n.end} className={cls}><span className="ic">{n.icon}</span>{n.label}</NavLink>
         ))}
@@ -46,6 +47,7 @@ export default function Layout() {
         <header className="topbar">
           <span className="t">FuCRM</span>
           <span className="muted" style={{ fontSize: 13 }}>{profile?.nome}</span>
+          <ThemeToggle />
           <span className="av" title={profile?.nome}>{initials(profile?.nome)}</span>
         </header>
         <div className="content"><Outlet /></div>
