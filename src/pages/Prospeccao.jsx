@@ -6,10 +6,10 @@ import { useToast } from '../context/ToastContext'
 import { logAudit } from '../lib/audit'
 
 const COLS = [
-  ['lead', 'Lead', 'contato ainda não feito'],
-  ['prospect', 'Prospect', 'contato feito, avaliando'],
-  ['cliente', 'Cliente', 'orçamento aprovado'],
-  ['descartado', 'Descartado', ''],
+  ['lead', 'Lead', 'contato ainda não feito', '#5aa2f0'],
+  ['prospect', 'Prospect', 'contato feito, avaliando', '#e3a53a'],
+  ['cliente', 'Cliente', 'orçamento aprovado', '#00a838'],
+  ['descartado', 'Descartado', 'não avançou', '#94a3b8'],
 ]
 const EMPTY = { razao_social: '', telefone: '', cidade: '', estado: 'SC', origem: '' }
 
@@ -68,17 +68,23 @@ export default function Prospeccao() {
       <p className="hint">Funil de aquisição · {abertos} em aberto. Arraste para avançar. Registrar uma visita move o Lead para Prospect; aprovar um orçamento vira Cliente — automaticamente.</p>
 
       <div className="board">
-        {COLS.map(([st, label, desc]) => {
+        {COLS.map(([st, label, desc, cor]) => {
           const cards = clientes.filter((c) => c.estagio === st)
           const mostrar = ['cliente', 'descartado'].includes(st) ? cards.slice(0, 12) : cards
           return (
             <div key={st}
-              className={'kcol' + (st === 'cliente' ? ' gate' : '') + (over === st ? ' drop' : '')}
+              className={'kcol kfase' + (over === st ? ' drop' : '')}
+              style={{ background: `color-mix(in srgb, ${cor} 9%, var(--surface))`, borderTop: `3px solid ${cor}` }}
               onDragOver={(e) => { e.preventDefault(); setOver(st) }}
               onDragLeave={() => setOver((o) => (o === st ? null : o))}
               onDrop={() => drop(st)}>
-              <div className="kh"><span>{label}</span><span className="c">{cards.length}</span></div>
-              {desc && <div className="m" style={{ margin: '-4px 0 8px', color: 'var(--faint)' }}>{desc}</div>}
+              <div className="kh">
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 3, background: cor, flex: '0 0 auto' }} />{label}
+                </span>
+                <span className="c" style={{ color: cor, borderColor: cor }}>{cards.length}</span>
+              </div>
+              {desc && <div className="m" style={{ margin: '-2px 0 9px', color: 'var(--faint)' }}>{desc}</div>}
               {mostrar.map((c) => (
                 <div className="kcard" key={c.id} draggable
                   onDragStart={() => setDrag(c)} onClick={() => nav(`/clientes/${c.id}`)}>
