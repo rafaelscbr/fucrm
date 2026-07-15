@@ -1,60 +1,83 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { montarCodigo } from '../../lib/produtos'
+import { matchProduto, tipoTotvsLabel } from '../../lib/produtos'
+
+const ORIGEM = {
+  '0': 'Nacional', '1': 'Import. direta', '2': 'Import. mercado int.', '3': 'Nacional >40% imp.',
+  '4': 'Nacional proc. básico', '5': 'Nacional <40% imp.', '6': 'Import. sem similar', '7': 'Import. merc. int. s/ similar', '8': 'Nacional >70% imp.',
+}
+const LIMITE = 200
 
 export default function Catalogo() {
   const [lista, setLista] = useState(null)
-  const [f, setF] = useState({ tipo: 'Caixa ST', comprimento: '', largura: '', altura: '', descricao: '', linha: 'infraestrutura', peso: '' })
-  const set = (k, v) => setF((s) => ({ ...s, [k]: v }))
-  const codigo = useMemo(() => montarCodigo(f), [f])
+  const [busca, setBusca] = useState('')
+  const [tipo, setTipo] = useState('')
 
-  async function load() {
-    const { data } = await supabase.from('produtos').select('*').order('codigo_inteligente')
-    setLista(data || [])
-  }
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    supabase.from('produtos')
+      .select('id,codigo_totvs,descricao,tipo_totvs,unidade,grupo_totvs,ncm,cest,origem_fiscal,grupo_tributario,peso_liquido_kg,ativo,bloqueado')
+      .order('descricao')
+      .then(({ data }) => setLista(data || []))
+  }, [])
 
-  async function add() {
-    if (!f.comprimento) return
-    await supabase.from('produtos').insert({
-      codigo_inteligente: codigo, tipo: f.tipo,
-      comprimento_mm: Number(f.comprimento) || null, largura_mm: Number(f.largura) || null,
-      altura_mm: f.tipo === 'Tampa ST' ? null : Number(f.altura) || null,
-      descricao: f.descricao || `${f.tipo} ${f.comprimento}x${f.largura}${f.altura ? 'x' + f.altura : ''}`,
-      linha: f.linha, peso_bruto_kg: Number(f.peso) || null,
-    })
-    setF({ tipo: 'Caixa ST', comprimento: '', largura: '', altura: '', descricao: '', linha: 'infraestrutura', peso: '' })
-    load()
-  }
+  const tipos = useMemo(() => {
+    if (!lista) return []
+    const m = {}
+    lista.forEach((p) => { m[p.tipo_totvs] = (m[p.tipo_totvs] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1])
+  }, [lista])
+
+  const filtrados = useMemo(() => {
+    if (!lista) return []
+    return lista.filter((p) => (!tipo || p.tipo_totvs === tipo) && matchProduto(p, busca))
+  }, [lista, busca, tipo])
 
   if (lista === null) return <div className="spinner" />
 
   return (
     <div>
-      <div className="page-head"><h1>Catálogo</h1></div>
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="grid-form">
-          <div className="field"><label>Tipo</label>
-            <select className="select" value={f.tipo} onChange={(e) => set('tipo', e.target.value)}>
-              <option>Caixa ST</option><option>Tampa ST</option></select></div>
-          <div className="field"><label>Linha</label>
-            <select className="select" value={f.linha} onChange={(e) => set('linha', e.target.value)}>
-              <option value="infraestrutura">Infraestrutura</option><option value="moradia">Moradia</option>
-              <option value="varejo">Varejo</option><option value="agro">Agro</option></select></div>
-          <div className="field"><label>Comprimento (mm)</label><input className="input" type="number" value={f.comprimento} onChange={(e) => set('comprimento', e.target.value)} /></div>
-          <div className="field"><label>Largura (mm)</label><input className="input" type="number" value={f.largura} onChange={(e) => set('largura', e.target.value)} /></div>
-          {f.tipo !== 'Tampa ST' && <div className="field"><label>Altura (mm)</label><input className="input" type="number" value={f.altura} onChange={(e) => set('altura', e.target.value)} /></div>}
-          <div className="field"><label>Peso bruto (kg)</label><input className="input" type="number" step="0.1" value={f.peso} onChange={(e) => set('peso', e.target.value)} /></div>
-        </div>
-        <div className="banner info"><span>Código gerado:</span><b>{codigo}</b></div>
-        <button className="btn" onClick={add}>Adicionar produto</button>
+      <div className="page-head">
+        <h1>Catálogo</h1>
+        <span className="pill n">{lista.length} produtos</span>
       </div>
+      <p className="hint">Importado do TOTVS (código e descrição originais). Novos produtos são criados no TOTVS e reimportados. Preço vem da tabela de preços.</p>
+
+      <div className="grid-form" style={{ marginBottom: 12 }}>
+        <div className="field full" style={{ marginBottom: 0 }}>
+          <label>Buscar (código, descrição ou NCM)</label>
+          <input className="input" placeholder="ex.: canaleta, CAN0700 ou 3917.40.90" value={busca} onChange={(e) => setBusca(e.target.value)} />
+        </div>
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>Tipo</label>
+          <select className="select" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <option value="">Todos os tipos</option>
+            {tipos.map(([t, n]) => <option key={t} value={t}>{tipoTotvsLabel(t)} ({n})</option>)}
+          </select>
+        </div>
+      </div>
+
+      <p className="hint">{filtrados.length} encontrado(s){filtrados.length > LIMITE ? ` · mostrando os primeiros ${LIMITE}` : ''}</p>
+
       <div className="tbl-wrap">
         <table className="tbl">
-          <thead><tr><th>Código</th><th>Descrição</th><th>Peso</th></tr></thead>
-          <tbody>{lista.map((p) => (
-            <tr key={p.id}><td>{p.codigo_inteligente}</td><td>{p.descricao}</td><td>{p.peso_bruto_kg ? p.peso_bruto_kg + ' kg' : '—'}</td></tr>
-          ))}</tbody>
+          <thead><tr>
+            <th>Código</th><th>Descrição</th><th>Tipo</th><th>Un</th><th>NCM</th><th>CEST</th><th>Peso líq.</th><th>Origem</th><th>Gr.Trib</th>
+          </tr></thead>
+          <tbody>
+            {filtrados.slice(0, LIMITE).map((p) => (
+              <tr key={p.id} style={p.bloqueado || !p.ativo ? { opacity: 0.5 } : undefined}>
+                <td style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>{p.codigo_totvs}</td>
+                <td>{p.descricao}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{tipoTotvsLabel(p.tipo_totvs)}</td>
+                <td>{p.unidade}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{p.ncm || '—'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{p.cest || '—'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{p.peso_liquido_kg ? p.peso_liquido_kg + ' kg' : '—'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{p.origem_fiscal != null ? (ORIGEM[p.origem_fiscal] || p.origem_fiscal) : '—'}</td>
+                <td>{p.grupo_tributario || '—'}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>

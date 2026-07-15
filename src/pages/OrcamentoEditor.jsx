@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
-import { matchProduto } from '../lib/produtos'
+import { matchProduto, tipoTotvsLabel } from '../lib/produtos'
 import { brl } from '../lib/format'
 import { logAudit } from '../lib/audit'
 import MoneyInput from '../components/MoneyInput'
@@ -32,7 +32,10 @@ export default function OrcamentoEditor() {
 
   useEffect(() => {
     if (clienteId) supabase.from('clientes').select('id,razao_social,estado,tipo_cliente').eq('id', clienteId).single().then(({ data }) => setCliente(data))
-    supabase.from('produtos').select('*').eq('ativo', true).then(({ data }) => setProdutos(data || []))
+    supabase.from('produtos')
+      .select('id,codigo_totvs,descricao,tipo_totvs,unidade,ncm,peso_liquido_kg')
+      .eq('ativo', true).eq('bloqueado', false)
+      .then(({ data }) => setProdutos(data || []))
     supabase.from('condicoes_pagamento').select('*').eq('ativo', true).order('ordem').then(({ data }) => setCondicoes(data || []))
     if (clienteId) supabase.from('enderecos').select('*').eq('cliente_id', clienteId).order('created_at').then(({ data }) => {
       setEnderecos(data || [])
@@ -41,11 +44,11 @@ export default function OrcamentoEditor() {
     })
   }, [clienteId])
 
-  const achados = useMemo(() => (busca.length < 2 ? [] : produtos.filter((p) => matchProduto(p, busca)).slice(0, 6)), [busca, produtos])
+  const achados = useMemo(() => (busca.length < 2 ? [] : produtos.filter((p) => matchProduto(p, busca)).slice(0, 8)), [busca, produtos])
   const total = itens.reduce((s, i) => s + i.quantidade * i.valor_unitario, 0) + (Number(valorFrete) || 0)
 
   function addProduto(p) {
-    setItens((arr) => [...arr, { produto_id: p.id, codigo_inteligente: p.codigo_inteligente, descricao: p.descricao, quantidade: 1, valor_unitario: 0 }])
+    setItens((arr) => [...arr, { produto_id: p.id, codigo_inteligente: p.codigo_totvs, descricao: p.descricao, quantidade: 1, valor_unitario: 0 }])
     setBusca('')
   }
   const upItem = (idx, k, v) => setItens((arr) => arr.map((it, i) => (i === idx ? { ...it, [k]: v } : it)))
@@ -87,13 +90,13 @@ export default function OrcamentoEditor() {
       )}
 
       <div className="field">
-        <label>Buscar produto (por dimensão ou código)</label>
-        <input className="input" placeholder="ex.: 600 600 490 ou caixa 400" value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <label>Buscar produto (código TOTVS, descrição ou NCM)</label>
+        <input className="input" placeholder="ex.: canaleta, CAN0700 ou 3917.40.90" value={busca} onChange={(e) => setBusca(e.target.value)} />
       </div>
       {achados.map((p) => (
         <button className="row" key={p.id} onClick={() => addProduto(p)}>
-          <div className="grow"><div className="l1">{p.descricao}</div><div className="l2">{p.tipo}</div></div>
-          <span className="pill i">{p.codigo_inteligente}</span>
+          <div className="grow"><div className="l1">{p.descricao}</div><div className="l2">{tipoTotvsLabel(p.tipo_totvs)} · {p.unidade}{p.ncm ? ' · NCM ' + p.ncm : ''}</div></div>
+          <span className="pill i">{p.codigo_totvs}</span>
         </button>
       ))}
 
@@ -113,7 +116,7 @@ export default function OrcamentoEditor() {
           <div className="faint" style={{ fontSize: 13, textAlign: 'right' }}>Subtotal: {brl(it.quantidade * it.valor_unitario)}</div>
         </div>
       ))}
-      <p className="hint">Tabela de SC pendente — preço digitado manualmente por enquanto.</p>
+      <p className="hint">Preço digitado manualmente — a tabela de preços do TOTVS será importada em breve.</p>
 
       <div className="grid-form">
         <div className="field"><label>Condição de pagamento</label>
