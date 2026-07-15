@@ -19,7 +19,7 @@ export default function OrcamentoPDF() {
 
   useEffect(() => {
     (async () => {
-      const { data: orc } = await supabase.from('orcamentos').select('*').eq('id', id).single()
+      const { data: orc } = await supabase.from('orcamentos').select('*, endereco:enderecos(*)').eq('id', id).single()
       setO(orc)
       if (orc) {
         const [{ data: c }, { data: it }, r] = await Promise.all([
@@ -122,7 +122,15 @@ export default function OrcamentoPDF() {
             </section>
             <section>
               <h4>Entrega</h4>
-              <div className="kvp"><span>Endereço</span><span>{cli.endereco || [cli.cidade, cli.estado].filter(Boolean).join(' / ') || '—'}</span></div>
+              {o.endereco ? (
+                <>
+                  {o.endereco.apelido && <div className="kvp"><span>Local</span><span>{o.endereco.apelido}</span></div>}
+                  <div className="kvp"><span>Endereço</span><span>{[[o.endereco.logradouro, o.endereco.numero].filter(Boolean).join(', '), o.endereco.bairro, [o.endereco.cidade, o.endereco.estado].filter(Boolean).join('/'), o.endereco.cep].filter(Boolean).join(' — ') || '—'}</span></div>
+                  {o.endereco.contato && <div className="kvp"><span>Recebe</span><span>{o.endereco.contato}</span></div>}
+                </>
+              ) : (
+                <div className="kvp"><span>Endereço</span><span>{cli.endereco || [cli.cidade, cli.estado].filter(Boolean).join(' / ') || 'Mesmo do faturamento'}</span></div>
+              )}
               <div className="kvp"><span>Frete</span><span>{freteLabel}</span></div>
               <div className="kvp"><span>Peso bruto</span><span>{o.peso_bruto_total ? o.peso_bruto_total + ' kg' : '—'}</span></div>
             </section>

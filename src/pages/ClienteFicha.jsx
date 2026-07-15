@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { brl, tipoClienteLabel, statusLabel, canalLabel, tipoInteracaoLabel, diasAtras, dataBR } from '../lib/format'
+import EnderecosCliente from '../components/EnderecosCliente'
 
 function healthScore(cli, inter) {
   let s = 0
@@ -64,6 +65,7 @@ export default function ClienteFicha() {
       <div className="tabs">
         <button className={'tab ' + (tab === 'rel' ? 'on' : '')} onClick={() => setTab('rel')}>Relacionamento</button>
         <button className={'tab ' + (tab === 'cad' ? 'on' : '')} onClick={() => setTab('cad')}>Cadastro</button>
+        <button className={'tab ' + (tab === 'end' ? 'on' : '')} onClick={() => setTab('end')}>Endereços</button>
         <button className={'tab ' + (tab === 'orc' ? 'on' : '')} onClick={() => setTab('orc')}>Orçamentos ({orcs.length})</button>
       </div>
 
@@ -118,6 +120,8 @@ export default function ClienteFicha() {
           </div>
         </div>
       )}
+
+      {tab === 'end' && <EnderecosCliente clienteId={id} />}
 
       {tab === 'orc' && (
         orcs.length === 0 ? <div className="empty">Nenhum orçamento. <Link to={`/orcamentos/novo?cliente=${id}`}>Criar o primeiro</Link>.</div> : (

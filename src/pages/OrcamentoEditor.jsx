@@ -22,6 +22,8 @@ export default function OrcamentoEditor() {
   const [frete, setFrete] = useState('FOB')
   const [valorFrete, setValorFrete] = useState('')
   const [peso, setPeso] = useState('')
+  const [enderecos, setEnderecos] = useState([])
+  const [entregaId, setEntregaId] = useState('')
   const [obsPedido, setObsPedido] = useState('')
   const [obsNF, setObsNF] = useState('')
   const [saving, setSaving] = useState(false)
@@ -30,6 +32,11 @@ export default function OrcamentoEditor() {
     if (clienteId) supabase.from('clientes').select('id,razao_social,estado,tipo_cliente').eq('id', clienteId).single().then(({ data }) => setCliente(data))
     supabase.from('produtos').select('*').eq('ativo', true).then(({ data }) => setProdutos(data || []))
     supabase.from('condicoes_pagamento').select('*').eq('ativo', true).order('ordem').then(({ data }) => setCondicoes(data || []))
+    if (clienteId) supabase.from('enderecos').select('*').eq('cliente_id', clienteId).order('created_at').then(({ data }) => {
+      setEnderecos(data || [])
+      const p = (data || []).find((e) => e.principal)
+      if (p) setEntregaId(p.id)
+    })
   }, [clienteId])
 
   const achados = useMemo(() => (busca.length < 2 ? [] : produtos.filter((p) => matchProduto(p, busca)).slice(0, 6)), [busca, produtos])
@@ -51,6 +58,7 @@ export default function OrcamentoEditor() {
       valor_frete: frete === 'CIF' ? Number(valorFrete) || 0 : null,
       peso_bruto_total: frete === 'CIF' ? Number(peso) || null : null,
       obs_pedido: obsPedido || null, obs_nota_fiscal: obsNF || null,
+      endereco_entrega_id: entregaId || null,
       codigo_vendedor: profile?.codigo_vendedor_totvs || null,
     }).select('id').single()
     if (error) { setSaving(false); alert('Erro: ' + error.message); return }
@@ -113,6 +121,13 @@ export default function OrcamentoEditor() {
         <div className="field"><label>Tipo de frete</label>
           <select className="select" value={frete} onChange={(e) => setFrete(e.target.value)}>
             <option value="FOB">FOB</option><option value="CIF">CIF</option></select></div>
+        <div className="field full"><label>Endereço de entrega</label>
+          <select className="select" value={entregaId} onChange={(e) => setEntregaId(e.target.value)}>
+            <option value="">Mesmo do faturamento</option>
+            {enderecos.map((en) => <option key={en.id} value={en.id}>{[en.apelido, en.cidade].filter(Boolean).join(' — ') || en.logradouro || 'Endereço'}</option>)}
+          </select>
+          {enderecos.length === 0 && <p className="hint" style={{ marginTop: 5 }}>Cadastre endereços na ficha do cliente (aba Endereços).</p>}
+        </div>
         {frete === 'CIF' && <>
           <div className="field"><label>Valor do frete</label>
             <MoneyInput value={valorFrete} onChange={setValorFrete} /></div>

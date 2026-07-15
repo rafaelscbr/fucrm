@@ -15,7 +15,7 @@ export default function OrcamentoView() {
   const [rep, setRep] = useState(null)
 
   const load = useCallback(async () => {
-    const { data: orc } = await supabase.from('orcamentos').select('*').eq('id', id).single()
+    const { data: orc } = await supabase.from('orcamentos').select('*, endereco:enderecos(*)').eq('id', id).single()
     setO(orc)
     if (orc) {
       const [{ data: c }, { data: it }, { data: r }] = await Promise.all([
@@ -94,6 +94,7 @@ export default function OrcamentoView() {
         <div className="grp"><div className="gt">Condições</div><div className="kv">
           <div><span>Pagamento</span><span>{o.condicao_pagamento || '—'}</span></div>
           <div><span>Frete</span><span>{o.tipo_frete === 'F' ? 'FOB' : o.tipo_frete}{o.tipo_frete === 'CIF' ? ` · ${brl(o.valor_frete)} · ${o.peso_bruto_total || '?'}kg` : ''}</span></div>
+          <div><span>Entrega</span><span>{o.endereco ? [o.endereco.apelido, o.endereco.cidade].filter(Boolean).join(' · ') : 'Mesmo do faturamento'}</span></div>
         </div></div>
         <div className="grp"><div className="gt">Observações</div><div className="kv">
           <div><span>Obs. pedido (interno)</span><span>{o.obs_pedido || '—'}</span></div>
