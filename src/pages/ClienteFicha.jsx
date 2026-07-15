@@ -159,6 +159,9 @@ export default function ClienteFicha() {
 
       {tab === 'cad' && (
         <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <Link className="btn ghost sm" to={`/clientes/${id}/editar`}>Editar cadastro</Link>
+          </div>
           <div className="kv">
             <div><span>Razão social</span><span>{cli.razao_social}</span></div>
             <div><span>CNPJ/CPF</span><span>{cli.cnpj_cpf || '—'}</span></div>

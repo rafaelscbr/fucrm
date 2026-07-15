@@ -15,12 +15,25 @@ export default function Clientes() {
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState('todos')
   const [userCoord, setUserCoord] = useState(null)
+  const [orcMap, setOrcMap] = useState({})
 
   const carregar = useCallback(async () => {
-    const { data } = await supabase.from('clientes')
-      .select('id, razao_social, cidade, estado, tipo_cliente, bloqueado, representante_responsavel_id')
-      .order('razao_social')
-    setClientes(data || [])
+    const [{ data: cs }, { data: orcs }] = await Promise.all([
+      supabase.from('clientes')
+        .select('id, razao_social, cidade, estado, tipo_cliente, bloqueado, representante_responsavel_id')
+        .order('razao_social'),
+      supabase.from('orcamentos').select('cliente_id, status'),
+    ])
+    const map = {}
+    ;(orcs || []).forEach((o) => {
+      const m = map[o.cliente_id] || { count: 0, ganho: false, ativo: false }
+      m.count++
+      if (['aprovado', 'lancado_totvs', 'faturado'].includes(o.status)) m.ganho = true
+      else if (!['perdido', 'cancelado'].includes(o.status)) m.ativo = true
+      map[o.cliente_id] = m
+    })
+    setOrcMap(map)
+    setClientes(cs || [])
   }, [])
   useEffect(() => { carregar() }, [carregar])
 
@@ -81,7 +94,10 @@ export default function Clientes() {
                     {c.tipo_cliente ? ` · ${tipoClienteLabel[c.tipo_cliente]}` : ''}
                   </div>
                 </div>
-                {c.bloqueado ? <span className="pill r">bloqueado</span> : meu ? <span className="pill g">meu</span> : <span className="pill w">outro rep</span>}
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                  {orcMap[c.id] && <span className={'pill ' + (orcMap[c.id].ganho ? 'g' : orcMap[c.id].ativo ? 'i' : 'n')}>{orcMap[c.id].count} orç.</span>}
+                  {c.bloqueado ? <span className="pill r">bloqueado</span> : meu ? <span className="pill g">meu</span> : <span className="pill w">outro rep</span>}
+                </div>
               </button>
             )
           })

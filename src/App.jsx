@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Clientes from './pages/Clientes'
 import ClienteNovo from './pages/ClienteNovo'
 import ClienteFicha from './pages/ClienteFicha'
+import ClienteEditar from './pages/ClienteEditar'
 import RegistrarVisita from './pages/RegistrarVisita'
 import OrcamentoEditor from './pages/OrcamentoEditor'
 import OrcamentoView from './pages/OrcamentoView'
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="clientes" element={<Clientes />} />
         <Route path="clientes/novo" element={<ClienteNovo />} />
         <Route path="clientes/:id" element={<ClienteFicha />} />
+        <Route path="clientes/:id/editar" element={<ClienteEditar />} />
         <Route path="clientes/:id/visita" element={<RegistrarVisita />} />
         <Route path="orcamentos/novo" element={<OrcamentoEditor />} />
         <Route path="orcamentos/:id" element={<OrcamentoView />} />
