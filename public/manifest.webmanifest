@@ -1,0 +1,12 @@
+{
+  "name": "FuCRM — Fuplastic",
+  "short_name": "FuCRM",
+  "description": "CRM da representação Fuplastic no Sul",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1f1f1f",
+  "theme_color": "#1f1f1f",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
