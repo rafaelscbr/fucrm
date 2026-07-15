@@ -116,7 +116,8 @@ export default function AdminDashboard() {
       donut: STATUS.map(([st, label]) => ({ label, color: STATUS_COR[st], value: cnt(oP, (o) => o.status === st) })).filter((x) => x.value > 0),
       repFat: perf.filter((p) => p.faturado > 0 || p.pipeline > 0).map((p) => ({ label: p.nome.split(' ')[0], fat: Math.round(p.faturado), pipe: Math.round(p.pipeline) })),
       perf,
-      clienteMarkers: Object.entries(porCidade).map(([label, v]) => ({ coordinates: v.coordinates, r: Math.min(6 + v.count * 2.4, 18), color: '#00a838', label: `${label} · ${v.count}` })),
+      clienteMarkers: Object.entries(porCidade).map(([label, v]) => ({ coordinates: v.coordinates, r: Math.min(9 + v.count * 2, 19), color: '#00a838', num: v.count })),
+      cityRank: Object.entries(porCidade).map(([cidade, v]) => ({ cidade, count: v.count })).sort((a, b) => b.count - a.count),
       repMarkers,
     }
   }, [d, periodo])
@@ -262,17 +263,28 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="cockpit">
-        <div className="map-card">
-          <h3>Onde temos clientes</h3>
-          <div className="sub">O ponto cresce com o nº de clientes · arraste e use o scroll/pinça para aproximar</div>
-          <MapaBrasil markers={c.clienteMarkers} showLabels fontSize={17} height={440} ariaLabel="Mapa de clientes por cidade na região Sul" />
+      <div className="map-card" style={{ marginBottom: 16 }}>
+        <h3>Onde temos clientes</h3>
+        <div className="sub">A bolha mostra o nº de clientes na cidade · a lista ranqueia · arraste/zoom para aproximar</div>
+        <div className="map-flex">
+          <div className="mapa">
+            <MapaBrasil mode="num" markers={c.clienteMarkers} height={540} ariaLabel="Mapa de clientes por cidade na região Sul" />
+          </div>
+          <div className="city-list" role="list" aria-label="Clientes por cidade">
+            {c.cityRank.map((x) => (
+              <div className="ci" role="listitem" key={x.cidade}>
+                <span>{x.cidade}</span><b>{x.count}</b>
+                <span className="bar"><i style={{ width: (x.count / c.cityRank[0].count * 100) + '%' }} /></span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="map-card">
-          <h3>Territórios dos representantes</h3>
-          <div className="sub">Pino na região de atuação de cada representante</div>
-          <MapaBrasil markers={c.repMarkers} showLabels fontSize={18} height={440} ariaLabel="Mapa com a região de cada representante" />
-        </div>
+      </div>
+
+      <div className="map-card">
+        <h3>Territórios dos representantes</h3>
+        <div className="sub">Pino na região de atuação de cada representante</div>
+        <MapaBrasil mode="label" markers={c.repMarkers} fontSize={16} height={470} ariaLabel="Mapa com a região de cada representante" />
       </div>
     </div>
   )
