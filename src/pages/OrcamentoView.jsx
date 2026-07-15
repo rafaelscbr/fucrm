@@ -64,7 +64,7 @@ export default function OrcamentoView() {
         {acoes.map(([label, fn, kind]) => (
           <button key={label} className={'btn sm ' + (kind || '')} onClick={fn}>{label}</button>
         ))}
-        <button className="btn ghost sm" onClick={() => window.print()}>Imprimir / PDF</button>
+        <button className="btn sm" onClick={() => nav(`/orcamentos/${id}/pdf`)}>Gerar PDF</button>
       </div>
 
       <div className="sheet">
@@ -93,7 +93,7 @@ export default function OrcamentoView() {
         </div></div>
         <div className="grp"><div className="gt">Condições</div><div className="kv">
           <div><span>Pagamento</span><span>{o.condicao_pagamento || '—'}</span></div>
-          <div><span>Frete</span><span>{o.tipo_frete}{o.tipo_frete === 'CIF' ? ` · ${brl(o.valor_frete)} · ${o.peso_bruto_total || '?'}kg` : ''}</span></div>
+          <div><span>Frete</span><span>{o.tipo_frete === 'F' ? 'FOB' : o.tipo_frete}{o.tipo_frete === 'CIF' ? ` · ${brl(o.valor_frete)} · ${o.peso_bruto_total || '?'}kg` : ''}</span></div>
         </div></div>
         <div className="grp"><div className="gt">Observações</div><div className="kv">
           <div><span>Obs. pedido (interno)</span><span>{o.obs_pedido || '—'}</span></div>

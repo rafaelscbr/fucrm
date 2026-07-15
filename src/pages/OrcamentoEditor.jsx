@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { matchProduto } from '../lib/produtos'
 import { brl } from '../lib/format'
 import { logAudit } from '../lib/audit'
+import MoneyInput from '../components/MoneyInput'
 
 export default function OrcamentoEditor() {
   const nav = useNavigate()
@@ -17,7 +18,7 @@ export default function OrcamentoEditor() {
   const [busca, setBusca] = useState('')
   const [itens, setItens] = useState([])
   const [cond, setCond] = useState('')
-  const [frete, setFrete] = useState('F')
+  const [frete, setFrete] = useState('FOB')
   const [valorFrete, setValorFrete] = useState('')
   const [peso, setPeso] = useState('')
   const [obsPedido, setObsPedido] = useState('')
@@ -93,8 +94,8 @@ export default function OrcamentoEditor() {
           <div className="grid-form">
             <div className="field" style={{ marginBottom: 8 }}><label>Quantidade</label>
               <input className="input" type="number" min="1" value={it.quantidade} onChange={(e) => upItem(idx, 'quantidade', e.target.value)} /></div>
-            <div className="field" style={{ marginBottom: 8 }}><label>Valor unitário (R$)</label>
-              <input className="input" type="number" step="0.01" value={it.valor_unitario} onChange={(e) => upItem(idx, 'valor_unitario', e.target.value)} /></div>
+            <div className="field" style={{ marginBottom: 8 }}><label>Valor unitário</label>
+              <MoneyInput value={it.valor_unitario} onChange={(v) => upItem(idx, 'valor_unitario', v)} /></div>
           </div>
           <div className="faint" style={{ fontSize: 13, textAlign: 'right' }}>Subtotal: {brl(it.quantidade * it.valor_unitario)}</div>
         </div>
@@ -106,10 +107,10 @@ export default function OrcamentoEditor() {
           <input className="input" value={cond} onChange={(e) => setCond(e.target.value)} placeholder="ex.: 007" /></div>
         <div className="field"><label>Tipo de frete</label>
           <select className="select" value={frete} onChange={(e) => setFrete(e.target.value)}>
-            <option value="F">F (padrão)</option><option value="CIF">CIF</option></select></div>
+            <option value="FOB">FOB</option><option value="CIF">CIF</option></select></div>
         {frete === 'CIF' && <>
-          <div className="field"><label>Valor do frete (R$)</label>
-            <input className="input" type="number" step="0.01" value={valorFrete} onChange={(e) => setValorFrete(e.target.value)} /></div>
+          <div className="field"><label>Valor do frete</label>
+            <MoneyInput value={valorFrete} onChange={setValorFrete} /></div>
           <div className="field"><label>Peso bruto total (kg)</label>
             <input className="input" type="number" step="0.1" value={peso} onChange={(e) => setPeso(e.target.value)} /></div>
         </>}

@@ -9,6 +9,7 @@ import ClienteFicha from './pages/ClienteFicha'
 import RegistrarVisita from './pages/RegistrarVisita'
 import OrcamentoEditor from './pages/OrcamentoEditor'
 import OrcamentoView from './pages/OrcamentoView'
+import OrcamentoPDF from './pages/OrcamentoPDF'
 import Funil from './pages/Funil'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import Aprovacoes from './pages/admin/Aprovacoes'
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="clientes/:id/visita" element={<RegistrarVisita />} />
         <Route path="orcamentos/novo" element={<OrcamentoEditor />} />
         <Route path="orcamentos/:id" element={<OrcamentoView />} />
+        <Route path="orcamentos/:id/pdf" element={<OrcamentoPDF />} />
         <Route path="funil" element={<Funil />} />
         <Route path="admin" element={<Gestor><AdminDashboard /></Gestor>} />
         <Route path="admin/aprovacoes" element={<Gestor><Aprovacoes /></Gestor>} />

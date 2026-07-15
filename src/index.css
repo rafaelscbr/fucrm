@@ -228,11 +228,49 @@ table.tbl tr:last-child td{border-bottom:0}
   .metrics{grid-template-columns:repeat(4,1fr)}
 }
 
-/* ---------- Print (PDF do orçamento) ---------- */
+/* ---------- PDF profissional do orçamento ---------- */
+.pdf-page{max-width:860px;margin:0 auto}
+.pdf-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.doc{background:#fff;color:#23241f;border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:12.5px;line-height:1.5}
+.doc-head{background:#1f1f1f;color:#fff;padding:22px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.doc-brand{display:flex;align-items:center;gap:13px}
+.fu-mark{width:46px;height:46px;border-radius:12px;background:#00c53a;color:#06140a;display:grid;place-items:center;font-family:var(--font-head);font-weight:800;font-size:18px}
+.fu-name{font-family:var(--font-head);font-weight:800;font-size:23px;letter-spacing:.07em;line-height:1}
+.fu-sub{font-size:11px;color:#a9ada1;margin-top:3px}
+.doc-meta{text-align:right}
+.doc-title{font-family:var(--font-head);font-weight:700;font-size:12px;letter-spacing:.24em;color:#22d34e}
+.doc-num{font-family:var(--font-head);font-size:21px;font-weight:800;line-height:1.15}
+.doc-date{font-size:11px;color:#a9ada1}
+.doc-body{padding:26px 28px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:22px 0 8px}
+.doc h4{font-family:var(--font-head);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#00893a;border-bottom:2px solid #e6e8e0;padding-bottom:6px;margin:0 0 9px}
+.doc .strong{font-size:14.5px;font-weight:700;line-height:1.2}
+.doc .kvp{display:flex;justify-content:space-between;gap:12px;padding:2.5px 0;font-size:12px}
+.doc .kvp span:first-child{color:#83857a;white-space:nowrap}
+.doc .kvp span:last-child{text-align:right;font-weight:500}
+.doc-table{width:100%;border-collapse:collapse;margin-top:2px}
+.doc-table th{background:#f4f5f0;color:#5c5e54;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:10px 11px;border-bottom:1px solid #e6e8e0;font-weight:700}
+.doc-table td{padding:10px 11px;border-bottom:1px solid #eef0ea;font-size:12px}
+.doc-table tr:nth-child(even) td{background:#fafbf8}
+.doc-table .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.doc-totals{display:flex;justify-content:flex-end;margin-top:16px}
+.doc-totals .box{width:290px}
+.doc-totals .kvp{padding:5px 0;font-size:13px}
+.doc-totals .tot{border-top:2px solid #23241f;margin-top:6px;padding-top:9px;font-size:17px;font-weight:800}
+.doc-obs{background:#f7f8f4;border:1px solid #eceee6;border-radius:8px;padding:12px 15px;font-size:12px;margin-top:16px;color:#3a3b34}
+.doc-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-top:30px;border-top:1px solid #e6e8e0;padding-top:16px;font-size:11px;color:#83857a}
+.doc-sign{text-align:center;color:#23241f;font-weight:600}
+.doc-sign .line{width:210px;border-top:1px solid #23241f;margin-bottom:6px}
+@media (max-width:640px){ .two-col,.three-col{grid-template-columns:1fr} .doc-totals .box{width:100%} }
+
+/* ---------- Print ---------- */
 @media print{
-  .no-print{display:none !important}
-  .sidenav,.bottomnav,.topbar,.fab{display:none !important}
+  .no-print,.sidenav,.bottomnav,.topbar,.fab{display:none !important}
   body{background:#fff;color:#000}
   .content{padding:0;max-width:none}
   .sheet{border:0}
+  .doc{border:0;border-radius:0;max-width:none}
+  .pdf-page{max-width:none}
+  @page{margin:12mm}
 }
