@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { brl, statusLabel, tipoClienteLabel, dataBR } from '../lib/format'
 import { logAudit } from '../lib/audit'
@@ -9,6 +10,7 @@ export default function OrcamentoView() {
   const { id } = useParams()
   const nav = useNavigate()
   const { session, isGestor } = useAuth()
+  const toast = useToast()
   const [o, setO] = useState(null)
   const [cli, setCli] = useState(null)
   const [itens, setItens] = useState([])
@@ -31,6 +33,7 @@ export default function OrcamentoView() {
   async function setStatus(novo, extra = {}) {
     await supabase.from('orcamentos').update({ status: novo, ...extra }).eq('id', id)
     await logAudit('status_orcamento', 'orcamento', id, { status: novo })
+    toast('Status: ' + statusLabel[novo])
     load()
   }
   const perder = () => { const m = prompt('Motivo da perda:'); if (m !== null) setStatus('perdido', { motivo_perda: m }) }

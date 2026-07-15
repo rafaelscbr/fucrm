@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { matchProduto } from '../lib/produtos'
 import { brl } from '../lib/format'
@@ -12,6 +13,7 @@ export default function OrcamentoEditor() {
   const [sp] = useSearchParams()
   const clienteId = sp.get('cliente')
   const { session, profile } = useAuth()
+  const toast = useToast()
 
   const [cliente, setCliente] = useState(null)
   const [produtos, setProdutos] = useState([])
@@ -69,6 +71,7 @@ export default function OrcamentoEditor() {
     await supabase.from('orcamento_itens').insert(payload)
     await logAudit('criar', 'orcamento', orc.id)
     setSaving(false)
+    toast('Orçamento salvo')
     nav(`/orcamentos/${orc.id}`)
   }
 

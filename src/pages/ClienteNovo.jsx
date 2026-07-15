@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { logAudit } from '../lib/audit'
 import { buscarCnpj } from '../lib/cnpj'
@@ -10,6 +11,7 @@ const UF_LIST = ['SC', 'RS', 'PR', 'SP', 'MG', 'RJ', 'BA', 'GO', 'MT', 'MS', 'PA
 
 export default function ClienteNovo() {
   const { session } = useAuth()
+  const toast = useToast()
   const nav = useNavigate()
   const [f, setF] = useState({
     razao_social: '', nome_fantasia: '', cnpj_cpf: '', tipo_pessoa: 'pj',
@@ -74,6 +76,7 @@ export default function ClienteNovo() {
     setSaving(false)
     if (error) { setErr(error.message); return }
     await logAudit('criar', 'cliente', data.id, { razao_social: f.razao_social })
+    toast('Cliente cadastrado')
     nav(`/clientes/${data.id}`)
   }
 

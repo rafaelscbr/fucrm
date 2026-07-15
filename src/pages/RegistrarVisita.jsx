@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { sugerir } from '../lib/sugestoes'
 import { logAudit } from '../lib/audit'
@@ -23,6 +24,7 @@ export default function RegistrarVisita() {
   const { id } = useParams()
   const nav = useNavigate()
   const { session } = useAuth()
+  const toast = useToast()
   const [cliente, setCliente] = useState(null)
   const [etapa, setEtapa] = useState('modo')       // modo | form
   const [modo, setModo] = useState(null)           // voz | texto
@@ -133,8 +135,8 @@ export default function RegistrarVisita() {
       }).eq('id', id)
     }
     setSaving(false)
-    if (error) alert('Erro ao salvar: ' + error.message)
-    else { await logAudit('registrar_visita', 'cliente', id); nav(`/clientes/${id}`) }
+    if (error) toast('Não foi possível salvar a visita.', 'erro')
+    else { await logAudit('registrar_visita', 'cliente', id); toast('Visita registrada'); nav(`/clientes/${id}`) }
   }
 
   return (
