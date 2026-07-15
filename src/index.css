@@ -454,6 +454,33 @@ table.tbl tr:last-child td{border-bottom:0}
 @media (max-width:640px){ .two-col,.three-col{grid-template-columns:1fr} .doc-totals .box{width:100%} }
 
 /* ---------- Print ---------- */
+.orc-img-wrap{display:flex;justify-content:center;padding:6px 0 28px}
+.orc-img{width:380px;background:#ffffff;border-radius:22px;overflow:hidden;box-shadow:0 14px 44px rgba(0,0,0,.30);font-family:Inter,sans-serif;color:#1f2320}
+.oi-head{background:linear-gradient(150deg,#00c53a,#008f2c);padding:26px 24px 22px;color:#fff}
+.oi-logo{font-family:Sora,Inter,sans-serif;font-weight:800;font-size:26px;letter-spacing:.06em}
+.oi-tag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.92;margin-top:7px;font-weight:600}
+.oi-num{font-size:13px;opacity:.92;margin-top:12px}
+.oi-body{padding:20px 24px}
+.oi-block{margin-bottom:14px}
+.oi-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#9aa096;font-weight:700}
+.oi-cli{font-family:Sora,Inter,sans-serif;font-weight:700;font-size:18px;margin-top:4px;line-height:1.2}
+.oi-meta{font-size:12.5px;color:#6b6f68;margin-top:3px}
+.oi-items{border-top:1px solid #ececea;border-bottom:1px solid #ececea;padding:4px 0;margin:6px 0 14px}
+.oi-item{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed #efefec}
+.oi-item:last-child{border-bottom:0}
+.oi-desc{font-weight:600;font-size:14px;line-height:1.25}
+.oi-cod{font-size:11px;color:#9aa096;margin-top:2px}
+.oi-it-v{font-weight:700;font-size:14px;white-space:nowrap}
+.oi-cond{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.oi-cond>div{display:flex;justify-content:space-between;font-size:12.5px}
+.oi-cond span{color:#9aa096}.oi-cond b{color:#1f2320;font-weight:600}
+.oi-total{display:flex;justify-content:space-between;align-items:center;background:#eafaef;border:1px solid #bfead0;border-radius:14px;padding:15px 18px}
+.oi-total span{font-size:13px;color:#2f5a40;font-weight:600}
+.oi-total b{font-family:Sora,Inter,sans-serif;font-size:25px;font-weight:800;color:#008f2c}
+.oi-foot{background:#f6f7f3;padding:14px 24px;border-top:1px solid #ececea}
+.oi-foot-rep{font-size:12.5px;font-weight:600;color:#1f2320}
+.oi-foot-emp{font-size:11.5px;color:#9aa096;margin-top:2px}
+
 @media print{
   .no-print,.sidenav,.bottomnav,.topbar,.fab{display:none !important}
   body{background:#fff;color:#000}

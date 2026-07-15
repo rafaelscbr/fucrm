@@ -12,6 +12,17 @@ const COLS = [
   ['descartado', 'Descartado', 'não avançou', '#94a3b8'],
 ]
 const EMPTY = { razao_social: '', telefone: '', cidade: '', estado: 'SC', origem: '' }
+const MOTIVOS_DESCARTE = [
+  'Preço acima do esperado',
+  'Comprou do concorrente',
+  'Sem necessidade no momento',
+  'Sem verba / orçamento',
+  'Não retornou os contatos',
+  'Já tem fornecedor fixo',
+  'Produto não atende à necessidade',
+  'Fora da área de atuação',
+  'Frete / distância inviável',
+]
 
 export default function Prospeccao() {
   const nav = useNavigate()
@@ -22,6 +33,8 @@ export default function Prospeccao() {
   const [over, setOver] = useState(null)
   const [novo, setNovo] = useState(null) // null = fechado; objeto = form aberto
   const [salvando, setSalvando] = useState(false)
+  const [descarte, setDescarte] = useState(null) // card sendo descartado
+  const [motivoOutro, setMotivoOutro] = useState('')
 
   async function load() {
     let q = supabase.from('clientes')
@@ -33,15 +46,22 @@ export default function Prospeccao() {
   }
   useEffect(() => { load() }, [])
 
-  async function drop(estagio) {
+  async function moverPara(card, estagio, motivo = null) {
+    setClientes((cs) => cs.map((c) => (c.id === card.id ? { ...c, estagio } : c)))
+    await supabase.from('clientes').update({ estagio, ...(estagio === 'descartado' ? { motivo_perda_prospec: motivo } : {}) }).eq('id', card.id)
+    logAudit('estagio_conta', 'cliente', card.id, { estagio, motivo })
+  }
+  function drop(estagio) {
     const card = drag
     setOver(null); setDrag(null)
     if (!card || card.estagio === estagio) return
-    let motivo = null
-    if (estagio === 'descartado') motivo = prompt('Motivo do descarte:')
-    setClientes((cs) => cs.map((c) => (c.id === card.id ? { ...c, estagio } : c)))
-    await supabase.from('clientes').update({ estagio, ...(estagio === 'descartado' ? { motivo_perda_prospec: motivo } : {}) }).eq('id', card.id)
-    logAudit('estagio_conta', 'cliente', card.id, { estagio })
+    if (estagio === 'descartado') { setDescarte(card); return } // pede motivo no modal
+    moverPara(card, estagio)
+  }
+  function confirmarDescarte(motivo) {
+    if (!motivo) return
+    moverPara(descarte, 'descartado', motivo)
+    setDescarte(null); setMotivoOutro('')
   }
 
   async function salvarLead() {
@@ -99,6 +119,30 @@ export default function Prospeccao() {
           )
         })}
       </div>
+
+      {descarte && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setDescarte(null)}>
+          <div className="modal">
+            <h3 style={{ marginBottom: 4 }}>Descartar “{descarte.razao_social}”</h3>
+            <p className="hint" style={{ marginBottom: 14 }}>Por que não avançou? O motivo vira relatório depois.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {MOTIVOS_DESCARTE.map((m) => (
+                <button className="row static" key={m} style={{ cursor: 'pointer', marginBottom: 0 }} onClick={() => confirmarDescarte(m)}>
+                  <div className="grow"><div className="l1" style={{ fontSize: 14 }}>{m}</div></div>
+                </button>
+              ))}
+            </div>
+            <div className="field" style={{ marginTop: 12, marginBottom: 0 }}>
+              <label>Outro motivo</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input className="input" value={motivoOutro} onChange={(e) => setMotivoOutro(e.target.value)} placeholder="Descreva…" />
+                <button className="btn" disabled={!motivoOutro.trim()} onClick={() => confirmarDescarte(motivoOutro.trim())}>OK</button>
+              </div>
+            </div>
+            <button className="btn ghost" style={{ marginTop: 12, width: '100%' }} onClick={() => setDescarte(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
 
       {novo && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setNovo(null)}>

@@ -10,6 +10,7 @@ import RegistrarVisita from './pages/RegistrarVisita'
 import OrcamentoEditor from './pages/OrcamentoEditor'
 import OrcamentoView from './pages/OrcamentoView'
 import OrcamentoPDF from './pages/OrcamentoPDF'
+import OrcamentoImagem from './pages/OrcamentoImagem'
 import Funil from './pages/Funil'
 import Prospeccao from './pages/Prospeccao'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="orcamentos/novo" element={<OrcamentoEditor />} />
         <Route path="orcamentos/:id" element={<OrcamentoView />} />
         <Route path="orcamentos/:id/pdf" element={<OrcamentoPDF />} />
+        <Route path="orcamentos/:id/imagem" element={<OrcamentoImagem />} />
         <Route path="funil" element={<Funil />} />
         <Route path="prospeccao" element={<Prospeccao />} />
         <Route path="admin" element={<Gestor><AdminDashboard /></Gestor>} />

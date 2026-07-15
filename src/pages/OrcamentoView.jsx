@@ -69,7 +69,7 @@ export default function OrcamentoView() {
           <button key={label} className={'btn sm ' + (kind || '')} onClick={fn}>{label}</button>
         ))}
         <button className="btn sm" onClick={() => nav(`/orcamentos/${id}/pdf`)}>Gerar PDF</button>
-        <button className="btn ghost sm" onClick={() => window.open(waLink(cli.telefone, `Olá! Segue o resumo do orçamento #${o.numero} — total ${brl(o.valor_total)}. Qualquer dúvida, estou à disposição!`), '_blank')}>WhatsApp</button>
+        <button className="btn ghost sm" onClick={() => nav(`/orcamentos/${id}/imagem`)}>Imagem p/ WhatsApp</button>
       </div>
 
       <div className="sheet">
