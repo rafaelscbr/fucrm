@@ -54,19 +54,19 @@ body{margin:0;color:var(--text);font-family:var(--font);background:var(--bg);
 /* fundo verde vivo (dark) — aurora que se move suavemente atrás do conteúdo */
 body::before{content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none;opacity:0;transition:opacity .5s;
   background:
-    radial-gradient(38% 34% at 16% 20%, rgba(0,197,58,.16), transparent 60%),
-    radial-gradient(34% 32% at 84% 14%, rgba(0,150,46,.13), transparent 60%),
-    radial-gradient(44% 40% at 66% 88%, rgba(0,197,58,.11), transparent 62%),
-    radial-gradient(30% 30% at 40% 60%, rgba(20,120,60,.10), transparent 60%);
-  background-size:200% 200%,200% 200%,200% 200%,200% 200%;
-  background-position:0% 0%,100% 0%,50% 100%,30% 50%;filter:saturate(1.1)}
+    radial-gradient(26% 24% at 16% 18%, rgba(0,197,58,.10), transparent 60%),
+    radial-gradient(24% 22% at 84% 14%, rgba(0,150,46,.08), transparent 60%),
+    radial-gradient(30% 28% at 68% 86%, rgba(0,197,58,.07), transparent 62%),
+    radial-gradient(22% 22% at 42% 58%, rgba(20,120,60,.06), transparent 60%);
+  background-size:160% 160%,160% 160%,160% 160%,160% 160%;
+  background-position:0% 0%,100% 0%,50% 100%,30% 50%}
 @media (prefers-reduced-motion: no-preference){
-  body::before{animation:aurora 28s ease-in-out infinite alternate}
+  body::before{animation:aurora 52s ease-in-out infinite alternate}
 }
 @keyframes aurora{
   0%{background-position:0% 0%,100% 0%,50% 100%,30% 50%}
-  50%{background-position:28% 22%,72% 30%,42% 74%,55% 40%}
-  100%{background-position:12% 40%,90% 8%,58% 92%,20% 65%}
+  50%{background-position:12% 10%,88% 15%,46% 88%,40% 48%}
+  100%{background-position:5% 18%,95% 5%,54% 94%,25% 58%}
 }
 @media (prefers-color-scheme: dark){body::before{opacity:1}}
 :root[data-theme="dark"] body::before{opacity:1}
