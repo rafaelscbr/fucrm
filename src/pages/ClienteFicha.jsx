@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { brl, tipoClienteLabel, statusLabel, canalLabel, tipoInteracaoLabel, diasAtras, dataBR } from '../lib/format'
 import EnderecosCliente from '../components/EnderecosCliente'
-import { waLink, TEMPLATES } from '../lib/whatsapp'
+import { waLink, TEMPLATES, primeiroNome } from '../lib/whatsapp'
 import { rotaUrl } from '../lib/rapport'
 
 function healthScore(cli, inter) {
@@ -72,7 +72,7 @@ export default function ClienteFicha() {
         <div>
           <h1>{cli.razao_social}</h1>
           <p className="muted" style={{ fontSize: 13 }}>
-            {[cli.cidade, cli.estado].filter(Boolean).join(' · ')} · {tipoClienteLabel[cli.tipo_cliente]}
+            {[cli.contato_nome ? `${cli.contato_nome}${cli.contato_cargo ? ` (${cli.contato_cargo})` : ''}` : null, [cli.cidade, cli.estado].filter(Boolean).join(' · '), tipoClienteLabel[cli.tipo_cliente]].filter(Boolean).join(' · ')}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -106,7 +106,7 @@ export default function ClienteFicha() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {TEMPLATES.map((t) => (
                 <button className="row static" key={t.id} style={{ cursor: 'pointer' }}
-                  onClick={() => { window.open(waLink(cli.telefone, t.texto({ primeiro: cli.nome_fantasia || cli.razao_social, rep: (profile?.nome || '').split(' ')[0] })), '_blank'); setMsgOpen(false) }}>
+                  onClick={() => { window.open(waLink(cli.telefone, t.texto({ primeiro: primeiroNome(cli), rep: (profile?.nome || '').split(' ')[0] })), '_blank'); setMsgOpen(false) }}>
                   <div className="grow"><div className="l1">{t.nome}</div></div>
                 </button>
               ))}
@@ -164,6 +164,7 @@ export default function ClienteFicha() {
           </div>
           <div className="kv">
             <div><span>Razão social</span><span>{cli.razao_social}</span></div>
+            <div><span>Pessoa de contato</span><span>{cli.contato_nome ? `${cli.contato_nome}${cli.contato_cargo ? ` — ${cli.contato_cargo}` : ''}` : '—'}</span></div>
             <div><span>CNPJ/CPF</span><span>{cli.cnpj_cpf || '—'}</span></div>
             <div><span>Estado</span><span>{cli.estado || '—'}</span></div>
             <div><span>Cidade</span><span>{cli.cidade || '—'}</span></div>

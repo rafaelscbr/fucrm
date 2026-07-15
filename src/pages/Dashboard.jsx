@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { brl, dataBR } from '../lib/format'
 import { diasAteAniversario } from '../lib/rapport'
-import { waLink, TEMPLATES } from '../lib/whatsapp'
+import { waLink, TEMPLATES, primeiroNome } from '../lib/whatsapp'
 
 export default function Dashboard() {
   const { profile, session } = useAuth()
@@ -32,7 +32,7 @@ export default function Dashboard() {
       setStats({ clientes: clientes.count ?? 0, interacoes: interacoes.count ?? 0, orcamentos: orcamentos.count ?? 0 })
       setAcoes(prox.data || [])
       const { data: meus } = await supabase.from('clientes')
-        .select('id, razao_social, nome_fantasia, telefone, dados_pessoais, data_ultima_compra')
+        .select('id, razao_social, nome_fantasia, contato_nome, telefone, dados_pessoais, data_ultima_compra')
         .eq('representante_responsavel_id', session.user.id)
       const niver = (meus || []).map((c) => ({ ...c, dias: diasAteAniversario(c.dados_pessoais?.aniversario) }))
         .filter((c) => c.dias != null && c.dias <= 14).sort((a, b) => a.dias - b.dias)
@@ -107,7 +107,7 @@ export default function Dashboard() {
                 <div className="l1">{c.razao_social}</div>
                 <div className="l2">{c.dados_pessoais?.aniversario} · {c.dias === 0 ? 'é hoje!' : `em ${c.dias} dia(s)`}</div>
               </div>
-              <button className="btn ghost sm" onClick={() => window.open(waLink(c.telefone, TEMPLATES.find((t) => t.id === 'aniversario').texto({ primeiro: c.nome_fantasia || c.razao_social, rep: (profile?.nome || '').split(' ')[0] })), '_blank')}>Parabenizar</button>
+              <button className="btn ghost sm" onClick={() => window.open(waLink(c.telefone, TEMPLATES.find((t) => t.id === 'aniversario').texto({ primeiro: primeiroNome(c), rep: (profile?.nome || '').split(' ')[0] })), '_blank')}>Parabenizar</button>
             </div>
           ))}
         </>
@@ -121,7 +121,7 @@ export default function Dashboard() {
                 <div className="l1">{c.razao_social}</div>
                 <div className="l2">Sem compra há mais de 60 dias</div>
               </div>
-              <button className="btn ghost sm" onClick={() => window.open(waLink(c.telefone, TEMPLATES.find((t) => t.id === 'reativar').texto({ primeiro: c.nome_fantasia || c.razao_social, rep: (profile?.nome || '').split(' ')[0] })), '_blank')}>Chamar</button>
+              <button className="btn ghost sm" onClick={() => window.open(waLink(c.telefone, TEMPLATES.find((t) => t.id === 'reativar').texto({ primeiro: primeiroNome(c), rep: (profile?.nome || '').split(' ')[0] })), '_blank')}>Chamar</button>
             </div>
           ))}
         </>

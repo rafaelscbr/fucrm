@@ -12,6 +12,12 @@ export function waLink(tel, texto) {
   return t ? `https://wa.me/${t}?text=${msg}` : `https://wa.me/?text=${msg}`
 }
 
+// Nome para saudação: pessoa de contato (primeiro nome) > nome fantasia > razão social.
+export function primeiroNome(cli) {
+  if (cli?.contato_nome) return cli.contato_nome.trim().split(/\s+/)[0]
+  return cli?.nome_fantasia || cli?.razao_social || ''
+}
+
 export const TEMPLATES = [
   { id: 'abordagem', nome: 'Primeira abordagem', texto: (c) => `Olá ${c.primeiro}, tudo bem? Aqui é ${c.rep}, represento a Fuplastic na região. Gostaria de te apresentar nossas soluções em caixas de passagem e produtos plásticos. Quando seria um bom momento para conversar?` },
   { id: 'follow', nome: 'Follow-up', texto: (c) => `Oi ${c.primeiro}, tudo certo? Passando para saber se conseguiu avaliar o que conversamos. Qualquer dúvida, estou à disposição!` },

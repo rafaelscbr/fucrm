@@ -17,6 +17,7 @@ export default function ClienteNovo() {
     razao_social: '', nome_fantasia: '', cnpj_cpf: '', tipo_pessoa: 'pj',
     tipo_cliente: 'consumidor_final', telefone: '', email: '', cidade: '', estado: 'SC',
     endereco: '', cep: '', matriz_filial: 'matriz', consentimento_lgpd: false,
+    contato_nome: '', contato_cargo: '',
   })
   const [buscando, setBuscando] = useState('')
   const [dups, setDups] = useState([])
@@ -109,6 +110,10 @@ export default function ClienteNovo() {
               <option value="revendedor">Revendedor</option>
               <option value="exportacao">Exportação</option>
               <option value="produtor_rural">Produtor rural</option></select></div>
+          <div className="field"><label>Pessoa de contato (com quem você fala)</label>
+            <input className="input" value={f.contato_nome} onChange={(e) => set('contato_nome', e.target.value)} placeholder="ex.: João Silva" /></div>
+          <div className="field"><label>Cargo do contato</label>
+            <input className="input" value={f.contato_cargo} onChange={(e) => set('contato_cargo', e.target.value)} placeholder="ex.: Comprador" /></div>
           <div className="field"><label>Telefone</label>
             <input className="input" value={f.telefone} onChange={(e) => set('telefone', e.target.value)} /></div>
           <div className="field"><label>E-mail</label>
