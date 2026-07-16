@@ -8,6 +8,7 @@ const Ctx = createContext({ online: [] })
 function telaLabel(path) {
   if (path === '/') return 'Início'
   if (path.startsWith('/clientes')) return 'Clientes'
+  if (path.startsWith('/rota')) return 'Rota do dia'
   if (path.startsWith('/orcamentos')) return 'Orçamento'
   if (path.startsWith('/funil')) return 'Funil'
   if (path.startsWith('/admin/aprovacoes')) return 'Aprovações'

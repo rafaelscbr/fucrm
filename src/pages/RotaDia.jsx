@@ -129,7 +129,7 @@ export default function RotaDia() {
                   {!feito && <button className="btn sm" disabled={busy === p.id} onClick={() => checkin(p)}>{busy === p.id ? 'Localizando…' : 'Cheguei'}</button>}
                   {!feito && <a className="btn ghost sm" href={rotaUrl(c || {})} target="_blank" rel="noreferrer">Rota</a>}
                   <button className="btn ghost sm" onClick={() => nav(`/clientes/${c?.id}?preparar=1`)}>Preparar visita</button>
-                  {feito && <button className="btn sm" onClick={() => nav(`/clientes/${c?.id}/visita`)}>Registrar visita</button>}
+                  {feito && <button className="btn sm" onClick={() => nav(`/clientes/${c?.id}/visita?rota=1`)}>Registrar visita</button>}
                   <button className="btn danger sm" onClick={() => remover(p)}>tirar</button>
                 </div>
               </div>

@@ -9,6 +9,7 @@ import NotificationBell from './NotificationBell'
 
 const repNav = [
   { to: '/', label: 'Início', icon: 'home', end: true },
+  { to: '/rota', label: 'Rota', icon: 'rota' },
   { to: '/clientes', label: 'Clientes', icon: 'clientes' },
   { to: '/prospeccao', label: 'Prospecção', icon: 'prospeccao' },
   { to: '/funil', label: 'Vendas', icon: 'funil' },
@@ -29,7 +30,7 @@ const adminNav = [
 function tituloDe(path, isGestor) {
   if (path === '/') return isGestor ? 'Painel da operação' : 'Início'
   const mapa = [
-    ['/clientes/novo', 'Novo cliente'], ['/clientes', 'Clientes'], ['/orcamentos/novo', 'Novo orçamento'],
+    ['/clientes/novo', 'Novo cliente'], ['/clientes', 'Clientes'], ['/rota', 'Rota do dia'], ['/orcamentos/novo', 'Novo orçamento'],
     ['/orcamentos', 'Orçamento'], ['/funil', 'Funil'], ['/admin/aprovacoes', 'Aprovações'],
     ['/admin/representantes', 'Representantes'], ['/admin/territorios', 'Territórios'],
     ['/admin/carteira', 'Carteira interna'], ['/admin/catalogo', 'Catálogo'], ['/admin/condicoes', 'Condições de pagamento'],
@@ -42,7 +43,10 @@ export default function Layout() {
   const { profile, signOut, isGestor } = useAuth()
   const loc = useLocation()
   const cls = ({ isActive }) => (isActive ? 'on' : '')
-  const bottom = isGestor ? [...repNav, { to: '/admin/aprovacoes', label: 'TOTVS', icon: 'aprovacoes' }] : repNav
+  // Mobile: rep leva Rota; gestor troca Rota por TOTVS (5 itens para os dois)
+  const bottom = isGestor
+    ? [...repNav.filter((n) => n.to !== '/rota'), { to: '/admin/aprovacoes', label: 'TOTVS', icon: 'aprovacoes' }]
+    : repNav
 
   return (
     <PresenceProvider>

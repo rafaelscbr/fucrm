@@ -107,13 +107,15 @@ export default function OrcamentoView() {
       </div>
 
       <div className="sheet">
-        <div className="sheet-h">
-          <div>
-            <div style={{ fontWeight: 800 }}>Pronto para lançar no TOTVS</div>
-            <div className="muted" style={{ fontSize: 12 }}>Vendedor: {rep?.nome || '—'} · cód. {rep?.codigo_vendedor_totvs || '—'}</div>
+        {isGestor && (
+          <div className="sheet-h">
+            <div>
+              <div style={{ fontWeight: 800 }}>Pronto para lançar no TOTVS</div>
+              <div className="muted" style={{ fontSize: 12 }}>Vendedor: {rep?.nome || '—'} · cód. {rep?.codigo_vendedor_totvs || '—'}</div>
+            </div>
+            <span className="src">FONTE = RD STATION</span>
           </div>
-          <span className="src">FONTE = RD STATION</span>
-        </div>
+        )}
         <div className="grp"><div className="gt">Cabeçalho</div><div className="kv">
           <div><span>Filial</span><span>{o.filial}</span></div>
           <div><span>Data</span><span>{dataBR(o.created_at)}</span></div>
@@ -144,17 +146,19 @@ export default function OrcamentoView() {
         </div>
       </div>
 
-      <div className="card no-print" style={{ marginTop: 16 }}>
-        <h3 style={{ fontSize: 15, marginBottom: 10 }}>Checklist de conferência</h3>
-        <ul className="checklist">
-          <li>Estado correto? (define a tributação)</li>
-          <li>Filial 030201</li>
-          <li>Fonte = RD Station marcada</li>
-          <li>Código do vendedor presente</li>
-          <li>Matriz vs. filial — cliente certo?</li>
-          <li>Isenção ICMS/ST documentada (portaria) → Rosane</li>
-        </ul>
-      </div>
+      {isGestor && (
+        <div className="card no-print" style={{ marginTop: 16 }}>
+          <h3 style={{ fontSize: 15, marginBottom: 10 }}>Checklist de conferência</h3>
+          <ul className="checklist">
+            <li>Estado correto? (define a tributação)</li>
+            <li>Filial 030201</li>
+            <li>Fonte = RD Station marcada</li>
+            <li>Código do vendedor presente</li>
+            <li>Matriz vs. filial — cliente certo?</li>
+            <li>Isenção ICMS/ST documentada (portaria) → Rosane</li>
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
 import { enfileirarVisita } from '../lib/offlineQueue'
@@ -24,6 +24,8 @@ const TextSVG = ({ size = 30 }) => (
 export default function RegistrarVisita() {
   const { id } = useParams()
   const nav = useNavigate()
+  const [sp] = useSearchParams()
+  const destino = sp.get('rota') ? '/rota' : `/clientes/${id}` // veio da rota → volta pra rota
   const { session } = useAuth()
   const toast = useToast()
   const [cliente, setCliente] = useState(null)
@@ -140,7 +142,7 @@ export default function RegistrarVisita() {
       enfileirarVisita(interacao, extra)
       setSaving(false)
       toast('Sem sinal — visita salva e será enviada ao reconectar')
-      nav(`/clientes/${id}`)
+      nav(destino)
       return
     }
 
@@ -148,7 +150,7 @@ export default function RegistrarVisita() {
     if (!error && extra) await supabase.from('clientes').update(extra.dados).eq('id', id)
     setSaving(false)
     if (error) toast('Não foi possível salvar a visita.', 'erro')
-    else { await logAudit('registrar_visita', 'cliente', id); toast('Visita registrada'); nav(`/clientes/${id}`) }
+    else { await logAudit('registrar_visita', 'cliente', id); toast('Visita registrada'); nav(destino) }
   }
 
   return (
