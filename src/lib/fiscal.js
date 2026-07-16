@@ -31,28 +31,40 @@ export function impostoUnit(preco, r, imp, temSt = true) {
 
 export const ipiUnit = (preco, aliqIpi) => (Number(aliqIpi) > 0 ? (Number(preco) || 0) * Number(aliqIpi) / 100 : 0)
 
-// Consolida um orçamento: itens = [{quantidade, valor_unitario, aliq_ipi}]
-export function resumoFiscal(itens, r, imp, frete = 0) {
-  let mercadoria = 0, st = 0, difal = 0, ipi = 0, stPendente = false
-  for (const it of itens || []) {
+// Consolida um orçamento — IGUAL AO PROTHEUS: frete CIF integra a base de ICMS-ST,
+// DIFAL e IPI, rateado proporcionalmente entre os itens (como a NF-e faz).
+// Validado contra o espelho #027896: base 3.800 + frete 1,00 → base 3.801 → ST 403,67.
+// Retorna também porItem[] (imposto_unit/ipi_unit com o frete rateado) p/ gravar por item.
+export function calcularFiscal(itens, r, imp, frete = 0) {
+  const arr = itens || []
+  const f = Number(frete) || 0
+  const mercadoria = arr.reduce((s, it) => s + (Number(it.quantidade) || 0) * (Number(it.valor_unitario) || 0), 0)
+  let st = 0, difal = 0, ipi = 0, stPendente = false
+  const porItem = arr.map((it) => {
     const q = Number(it.quantidade) || 0
     const p = Number(it.valor_unitario) || 0
-    mercadoria += q * p
-    const im = impostoUnit(p, r, imp, it.tem_st !== false)
+    const vItem = q * p
+    const fItem = mercadoria > 0 ? f * (vItem / mercadoria) : 0 // rateio proporcional do frete
+    const baseUnit = q > 0 ? (vItem + fItem) / q : 0            // base unitária COM frete
+    const im = impostoUnit(baseUnit, r, imp, it.tem_st !== false)
+    const ipiU = r?.exportacao ? 0 : ipiUnit(baseUnit, it.aliq_ipi)
     if (im.tipo === 'st') st += im.valor * q
     if (im.tipo === 'difal') difal += im.valor * q
     if (im.tipo === 'st_pendente') stPendente = true
-    if (!r?.exportacao) ipi += ipiUnit(p, it.aliq_ipi) * q
-  }
-  // contribuinte uso final: DIFAL existe mas é recolhido pelo CLIENTE — só informar
+    ipi += ipiU * q
+    return { imposto_unit: im.valor, ipi_unit: ipiU, tipo: im.tipo }
+  })
+  // contribuinte uso final: DIFAL existe mas é recolhido pelo CLIENTE — só informar (base tb com frete)
   const difalInfo = r && !r.exportacao && !r.revenda && r.contribuinte === true && imp
-    ? mercadoria * (Number(imp.difal_pp) / 100) : 0
+    ? (mercadoria + f) * (Number(imp.difal_pp) / 100) : 0
   // ICMS já embutido no preço (destaque): interna p/ venda dentro do estado de origem (SP), senão interestadual
   const icmsDestaquePct = r?.exportacao || !imp ? 0 : Number(imp.uf === 'SP' ? imp.aliq_interna : imp.aliq_inter)
-  // arredonda os agregados (2 casas) — espelha o comportamento por item do Protheus
   st = r2(st); difal = r2(difal); ipi = r2(ipi)
-  const total = r2(mercadoria + st + difal + ipi + (Number(frete) || 0))
-  return { mercadoria: r2(mercadoria), st, difal, ipi, difalInfo: r2(difalInfo), icmsDestaquePct, stPendente, total }
+  const total = r2(mercadoria + st + difal + ipi + f)
+  return { porItem, mercadoria: r2(mercadoria), st, difal, ipi, difalInfo: r2(difalInfo), icmsDestaquePct, stPendente, total }
 }
+
+// compat: mesmo cálculo, sem os dados por item
+export const resumoFiscal = (itens, r, imp, frete = 0) => calcularFiscal(itens, r, imp, frete)
 
 export const OBS_FISCAL = 'Valores cotados conforme característica fiscal informada pelo cliente. Divergências de característica fiscal são de responsabilidade do comprador.'

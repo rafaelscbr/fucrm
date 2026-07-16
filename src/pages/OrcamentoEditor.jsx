@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { matchProduto, tipoTotvsLabel } from '../lib/produtos'
-import { regraFiscal, impostoUnit, ipiUnit, resumoFiscal } from '../lib/fiscal'
+import { regraFiscal, calcularFiscal } from '../lib/fiscal'
 import { brl } from '../lib/format'
 import { logAudit } from '../lib/audit'
 import MoneyInput from '../components/MoneyInput'
@@ -96,7 +96,7 @@ export default function OrcamentoEditor() {
 
   // Regra fiscal do orçamento (contribuinte confirmado pelo rep no banner)
   const regra = useMemo(() => regraFiscal(cliente, contrib === '' ? null : contrib === 'sim'), [cliente, contrib])
-  const resumo = useMemo(() => resumoFiscal(itens, regra, imp, frete === 'CIF' ? Number(valorFrete) || 0 : 0), [itens, regra, imp, frete, valorFrete])
+  const resumo = useMemo(() => calcularFiscal(itens, regra, imp, frete === 'CIF' ? Number(valorFrete) || 0 : 0), [itens, regra, imp, frete, valorFrete])
   const fiscalPendente = !regra.exportacao && contrib === ''
 
   // Peso do frete calculado a partir do peso dos produtos (editável)
@@ -145,6 +145,7 @@ export default function OrcamentoEditor() {
       aliq_st_pp: imp?.aliq_st_pp != null ? Number(imp.aliq_st_pp) : null,
       tot_st: resumo.st, tot_difal: resumo.difal, tot_ipi: resumo.ipi,
       difal_info: resumo.difalInfo, icms_destaque_pct: resumo.icmsDestaquePct, st_pendente: resumo.stPendente,
+      frete_na_base: frete === 'CIF', // frete CIF integra a base dos impostos (igual Protheus)
     }
     const { data: orc, error } = await supabase.from('orcamentos').insert({
       cliente_id: clienteId, representante_id: session.user.id, status: 'rascunho',
@@ -157,14 +158,12 @@ export default function OrcamentoEditor() {
       fiscal,
     }).select('id').single()
     if (error) { setSaving(false); alert('Erro: ' + error.message); return }
-    const payload = itens.map((i) => {
-      const p = Number(i.valor_unitario) || 0
-      return {
-        orcamento_id: orc.id, produto_id: i.produto_id, codigo_inteligente: i.codigo_inteligente,
-        descricao: i.descricao, quantidade: Number(i.quantidade) || 1, valor_unitario: p,
-        imposto_unit: impostoUnit(p, regra, imp, i.tem_st !== false).valor, ipi_unit: regra.exportacao ? 0 : ipiUnit(p, i.aliq_ipi),
-      }
-    })
+    // grava o MESMO cálculo exibido (frete CIF já rateado na base, igual Protheus)
+    const payload = itens.map((i, idx) => ({
+      orcamento_id: orc.id, produto_id: i.produto_id, codigo_inteligente: i.codigo_inteligente,
+      descricao: i.descricao, quantidade: Number(i.quantidade) || 1, valor_unitario: Number(i.valor_unitario) || 0,
+      imposto_unit: resumo.porItem[idx]?.imposto_unit || 0, ipi_unit: resumo.porItem[idx]?.ipi_unit || 0,
+    }))
     await supabase.from('orcamento_itens').insert(payload)
     // atualiza a característica fiscal no cadastro se o rep confirmou algo diferente
     if (contribBool !== null && contribBool !== cliente?.contribuinte_icms) {
@@ -234,11 +233,12 @@ export default function OrcamentoEditor() {
         <p className="hint">Busque e toque no produto para adicionar. Enter adiciona o primeiro resultado.</p>
       )}
 
-      {itens.map((it) => {
+      {itens.map((it, idx) => {
         const p = Number(it.valor_unitario) || 0
         const q = Number(it.quantidade) || 0
-        const im = impostoUnit(p, regra, imp, it.tem_st !== false)
-        const ipi = regra.exportacao ? 0 : ipiUnit(p, it.aliq_ipi)
+        const fi = resumo.porItem[idx] || { imposto_unit: 0, ipi_unit: 0, tipo: null }
+        const im = { tipo: fi.tipo, valor: fi.imposto_unit }
+        const ipi = fi.ipi_unit
         const totLinha = (p + im.valor + ipi) * q
         return (
           <div className={'card' + (flashId === it.uid ? ' item-flash' : '')} key={it.uid} style={{ marginBottom: 10, padding: '12px 14px' }}>
