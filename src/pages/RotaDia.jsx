@@ -6,7 +6,11 @@ import { useToast } from '../context/ToastContext'
 import { coordCliente } from '../lib/cidades'
 import { distanciaKm, rotaUrl } from '../lib/rapport'
 
-const hojeISO = () => new Date().toISOString().slice(0, 10)
+// Data LOCAL (não UTC): a rota vira à meia-noite de Brasília, não às 21h.
+const hojeISO = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 const horaBR = (ts) => new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
 export default function RotaDia() {
@@ -46,7 +50,8 @@ export default function RotaDia() {
   }
   async function add(c) {
     const ordem = (paradas?.length || 0) + 1
-    const { error } = await supabase.from('rota_dia').insert({ representante_id: uid, cliente_id: c.id, ordem })
+    // dia explícito: o default do banco é UTC e divergiria da data local entre 21h e meia-noite
+    const { error } = await supabase.from('rota_dia').insert({ representante_id: uid, cliente_id: c.id, ordem, dia: hojeISO() })
     if (error) toast(error.code === '23505' ? 'Já está na rota de hoje.' : 'Não foi possível adicionar.', 'erro')
     else toast('Adicionado à rota')
     setAddOpen(false); load()
