@@ -22,8 +22,9 @@ export function impostoUnit(preco, r, imp, temSt = true) {
   if (r.revenda) {
     if (!temSt) return { tipo: null, valor: 0 } // revenda de item sem ST: ICMS normal já no preço
     if (imp.mva_pp == null || imp.aliq_st_pp == null) return { tipo: 'st_pendente', valor: 0 }
+    // convenção: IVA 0 = UF sem ST praticado (fora da tabela da Ju) — não soma nem exibe
     const st = p * (1 + Number(imp.mva_pp) / 100) * (Number(imp.aliq_st_pp) / 100) - p * (Number(imp.aliq_inter) / 100)
-    return { tipo: 'st', valor: Math.max(st, 0) }
+    return st > 0.000001 ? { tipo: 'st', valor: st } : { tipo: null, valor: 0 }
   }
   if (r.contribuinte === false) return { tipo: 'difal', valor: p * (Number(imp.difal_pp) / 100) }
   return { tipo: null, valor: 0 } // contribuinte uso final (ou não confirmado): tabela pura
