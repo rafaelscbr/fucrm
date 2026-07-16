@@ -81,22 +81,24 @@ export default function OrcamentoPDF() {
             </section>
           </div>
 
-          <table className="doc-table">
-            <thead>
-              <tr><th>Código</th><th>Descrição</th><th className="num">Qtd</th><th className="num">Valor unit.</th><th className="num">Total</th></tr>
-            </thead>
-            <tbody>
-              {itens.map((i) => (
-                <tr key={i.id}>
-                  <td style={{ whiteSpace: 'nowrap' }}>{i.codigo_inteligente || '—'}</td>
-                  <td>{i.descricao || '—'}</td>
-                  <td className="num">{Number(i.quantidade)}</td>
-                  <td className="num">{brl(i.valor_unitario)}</td>
-                  <td className="num">{brl(i.subtotal)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="doc-table-wrap">
+            <table className="doc-table">
+              <thead>
+                <tr><th>Código</th><th>Descrição</th><th className="num">Qtd</th><th className="num">Valor unit.</th><th className="num">Total</th></tr>
+              </thead>
+              <tbody>
+                {itens.map((i) => (
+                  <tr key={i.id}>
+                    <td className="cod">{i.codigo_inteligente || '—'}</td>
+                    <td>{i.descricao || '—'}</td>
+                    <td className="num">{Number(i.quantidade)}</td>
+                    <td className="num">{brl(i.valor_unitario)}</td>
+                    <td className="num">{brl(i.subtotal)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="doc-totals">
             <div className="box">

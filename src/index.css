@@ -511,11 +511,19 @@ table.tbl tr:last-child td{border-bottom:0}
 .doc .kvp{display:flex;justify-content:space-between;gap:12px;padding:2.5px 0;font-size:12px}
 .doc .kvp span:first-child{color:#83857a;white-space:nowrap}
 .doc .kvp span:last-child{text-align:right;font-weight:500}
-.doc-table{width:100%;border-collapse:collapse;margin-top:2px}
+.doc-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.doc-table{width:100%;min-width:520px;border-collapse:collapse;margin-top:2px}
 .doc-table th{background:#f4f5f0;color:#5c5e54;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:10px 11px;border-bottom:1px solid #e6e8e0;font-weight:700}
 .doc-table td{padding:10px 11px;border-bottom:1px solid #eef0ea;font-size:12px}
 .doc-table tr:nth-child(even) td{background:#fafbf8}
 .doc-table .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.doc-table .cod{white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  .doc-table{min-width:440px}
+  .doc-table th{padding:8px 7px}
+  .doc-table td{padding:8px 7px;font-size:11px}
+  .doc-table .cod{white-space:normal;word-break:break-all;font-size:10.5px;max-width:88px}
+}
 .doc-totals{display:flex;justify-content:flex-end;margin-top:16px}
 .doc-totals .box{width:290px}
 .doc-totals .kvp{padding:5px 0;font-size:13px}
@@ -575,5 +583,7 @@ table.tbl tr:last-child td{border-bottom:0}
   .sheet{border:0}
   .doc{border:0;border-radius:0;max-width:none}
   .pdf-page{max-width:none}
+  .doc-table-wrap{overflow:visible}
+  .doc-table{min-width:0}
   @page{margin:12mm}
 }
