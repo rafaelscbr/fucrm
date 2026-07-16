@@ -205,6 +205,12 @@ textarea.input{resize:vertical;min-height:104px;line-height:1.55}
 .orc-bar .ob-t{font-size:19px;font-weight:800;font-family:var(--font-head)}
 .orc-bar .btn{flex:0 0 auto}
 @media (min-width:860px){.orc-bar{bottom:12px}}
+/* ---------- Rota do dia ---------- */
+.stop{display:flex;gap:12px;align-items:flex-start}
+.stop-num{width:30px;height:30px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-weight:800;font-size:13px;
+  background:var(--sunk);border:2px solid var(--border);color:var(--muted);margin-top:2px}
+.stop.done{opacity:.82}
+.stop.done .stop-num{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .content{padding:18px;max-width:1080px;width:100%;margin:0 auto}
 .bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;justify-content:space-around;
   background:var(--raised);border-top:1px solid var(--border-soft);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}

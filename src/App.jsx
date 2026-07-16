@@ -14,6 +14,7 @@ import OrcamentoPDF from './pages/OrcamentoPDF'
 import OrcamentoImagem from './pages/OrcamentoImagem'
 import Funil from './pages/Funil'
 import Prospeccao from './pages/Prospeccao'
+import RotaDia from './pages/RotaDia'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import Aprovacoes from './pages/admin/Aprovacoes'
 import MetasRanking from './pages/admin/MetasRanking'
@@ -52,6 +53,7 @@ export default function App() {
       <Route path="/" element={<Protected><Layout /></Protected>}>
         <Route index element={<Home />} />
         <Route path="clientes" element={<Clientes />} />
+        <Route path="rota" element={<RotaDia />} />
         <Route path="clientes/novo" element={<ClienteNovo />} />
         <Route path="clientes/:id" element={<ClienteFicha />} />
         <Route path="clientes/:id/editar" element={<ClienteEditar />} />

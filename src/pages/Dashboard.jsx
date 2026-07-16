@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { brl, dataBR } from '../lib/format'
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [acoes, setAcoes] = useState([])
   const [rel, setRel] = useState({ niver: [], reativar: [] })
   const [metas, setMetas] = useState([])
+  const [rota, setRota] = useState(null)
 
   useEffect(() => {
     async function load() {
@@ -31,6 +32,9 @@ export default function Dashboard() {
       ])
       setStats({ clientes: clientes.count ?? 0, interacoes: interacoes.count ?? 0, orcamentos: orcamentos.count ?? 0 })
       setAcoes(prox.data || [])
+      const { data: rd } = await supabase.from('rota_dia').select('id,checkin_em')
+        .eq('representante_id', session.user.id).eq('dia', hoje)
+      setRota({ total: (rd || []).length, feitas: (rd || []).filter((r) => r.checkin_em).length })
       const { data: meus } = await supabase.from('clientes')
         .select('id, razao_social, nome_fantasia, contato_nome, telefone, dados_pessoais, data_ultima_compra')
         .eq('representante_responsavel_id', session.user.id)
@@ -80,6 +84,15 @@ export default function Dashboard() {
         <div className="metric"><div className="n">{stats?.orcamentos ?? '—'}</div><div className="k">Orçamentos</div></div>
         <div className="metric"><div className="n">{acoes.length}</div><div className="k">Próximas ações</div></div>
       </div>
+
+      {rota && (
+        <Link to="/rota" className="banner accent" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+          <span>➜</span>
+          <span><b>Rota do dia:</b> {rota.total === 0
+            ? 'monte sua rota de visitas de hoje — toque para começar'
+            : `${rota.feitas} de ${rota.total} parada(s) visitada(s) — toque para abrir`}</span>
+        </Link>
+      )}
 
       {metas.length > 0 && (
         <>
