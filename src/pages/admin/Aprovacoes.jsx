@@ -15,7 +15,7 @@ export default function Aprovacoes() {
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('orcamentos')
-      .select('id,numero,status,valor_total,created_at,aprovado_cliente_em,lancado_em,cliente:clientes(razao_social,estado),rep:profiles!representante_id(nome)')
+      .select('id,numero,status,valor_total,created_at,aprovado_cliente_em,lancado_em,fiscal,cliente:clientes(razao_social,estado),rep:profiles!representante_id(nome)')
       .in('status', ['aguardando_totvs', 'lancado_totvs'])
       .order('created_at', { ascending: true })
     setOrcs(data || [])
@@ -38,11 +38,22 @@ export default function Aprovacoes() {
   const aguardando = orcs.filter((o) => o.status === 'aguardando_totvs')
   const lancados = orcs.filter((o) => o.status === 'lancado_totvs')
 
+  const fiscalHint = (f) => {
+    if (!f) return ''
+    const parts = []
+    if (f.tot_st > 0) parts.push(`ST ${brl(f.tot_st)}`)
+    if (f.tot_difal > 0) parts.push(`DIFAL ${brl(f.tot_difal)}`)
+    if (f.tot_ipi > 0) parts.push(`IPI ${brl(f.tot_ipi)}`)
+    if (f.st_pendente) parts.push('⚠ ST pendente')
+    if (f.exportacao) parts.push('exportação')
+    return parts.length ? ' · ' + parts.join(' · ') : ''
+  }
+
   const Linha = (o, acao, quando) => (
     <div className="row totvs-row" key={o.id}>
       <button className="grow linkish" onClick={() => nav(`/orcamentos/${o.id}`)}>
         <div className="l1">#{o.numero} · {o.cliente?.razao_social}</div>
-        <div className="l2">{o.rep?.nome || '—'}{o.cliente?.estado ? ' · ' + o.cliente.estado : ''} · {quando}</div>
+        <div className="l2">{o.rep?.nome || '—'}{o.cliente?.estado ? ' · ' + o.cliente.estado : ''} · {quando}{fiscalHint(o.fiscal)}</div>
       </button>
       <b className="totvs-val">{brl(o.valor_total)}</b>
       {acao}

@@ -60,6 +60,7 @@ export default function ClienteEditar() {
       telefone: f.telefone || null, email: f.email || null, cep: f.cep || null, endereco: f.endereco || null,
       cidade: f.cidade || null, estado: f.estado || null, matriz_filial: f.matriz_filial, dados_pessoais: dpClean,
       contato_nome: f.contato_nome || null, contato_cargo: f.contato_cargo || null,
+      contribuinte_icms: f.contribuinte_icms ?? null,
     }).eq('id', id)
     setSaving(false)
     if (error) toast('Não foi possível salvar.', 'erro')
@@ -78,6 +79,12 @@ export default function ClienteEditar() {
         <div className="field"><label>Inscrição estadual</label><input className="input" value={f.inscricao_estadual || ''} onChange={(e) => set('inscricao_estadual', e.target.value)} /></div>
         <div className="field"><label>Tipo de pessoa</label><select className="select" value={f.tipo_pessoa} onChange={(e) => set('tipo_pessoa', e.target.value)}><option value="pj">Pessoa jurídica</option><option value="pf">Pessoa física</option></select></div>
         <div className="field"><label>Tipo de cliente</label><select className="select" value={f.tipo_cliente} onChange={(e) => set('tipo_cliente', e.target.value)}><option value="consumidor_final">Consumidor final</option><option value="revendedor">Revendedor</option><option value="exportacao">Exportação</option><option value="produtor_rural">Produtor rural</option></select></div>
+        <div className="field"><label>Contribuinte de ICMS? (define o preço)</label>
+          <select className="select" value={f.contribuinte_icms === true ? 'sim' : f.contribuinte_icms === false ? 'nao' : ''}
+            onChange={(e) => set('contribuinte_icms', e.target.value === '' ? null : e.target.value === 'sim')}>
+            <option value="">Não confirmado</option>
+            <option value="sim">Sim, contribuinte</option>
+            <option value="nao">Não contribuinte</option></select></div>
         <div className="field"><label>Pessoa de contato</label><input className="input" value={f.contato_nome || ''} onChange={(e) => set('contato_nome', e.target.value)} placeholder="ex.: João Silva" /></div>
         <div className="field"><label>Cargo do contato</label><input className="input" value={f.contato_cargo || ''} onChange={(e) => set('contato_cargo', e.target.value)} placeholder="ex.: Comprador" /></div>
         <div className="field"><label>Telefone</label><input className="input" value={f.telefone || ''} onChange={(e) => set('telefone', e.target.value)} /></div>

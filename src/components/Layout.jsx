@@ -22,6 +22,7 @@ const adminNav = [
   { to: '/admin/representantes', label: 'Representantes', icon: 'reps' },
 ]
 const configNav = [
+  { to: '/admin/impostos', label: 'Impostos', icon: 'percent' },
   { to: '/admin/carteira', label: 'Carteira interna', icon: 'carteira' },
   { to: '/admin/territorios', label: 'Territórios', icon: 'territorios' },
   { to: '/admin/catalogo', label: 'Catálogo', icon: 'catalogo' },
@@ -35,7 +36,7 @@ function tituloDe(path, isGestor) {
   const mapa = [
     ['/clientes/novo', 'Novo cliente'], ['/clientes', 'Clientes'], ['/rota', 'Rota do dia'], ['/orcamentos/novo', 'Novo orçamento'],
     ['/orcamentos', 'Orçamento'], ['/funil', 'Funil'], ['/admin/aprovacoes', 'Cadastro no TOTVS'],
-    ['/admin/atividade', 'Atividade'], ['/admin/representantes', 'Representantes'], ['/admin/territorios', 'Territórios'],
+    ['/admin/atividade', 'Atividade'], ['/admin/impostos', 'Impostos'], ['/admin/representantes', 'Representantes'], ['/admin/territorios', 'Territórios'],
     ['/admin/carteira', 'Carteira interna'], ['/admin/catalogo', 'Catálogo'], ['/admin/condicoes', 'Condições de pagamento'],
     ['/admin/empresa', 'Dados Fuplastic'], ['/admin/logs', 'Logs'],
   ]

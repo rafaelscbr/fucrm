@@ -103,7 +103,15 @@ export default function OrcamentoImagem() {
               <div><span>Frete</span><b>{o.tipo_frete === 'F' ? 'FOB' : o.tipo_frete}{o.tipo_frete === 'CIF' && o.valor_frete ? ` · ${brl(o.valor_frete)}` : ''}</b></div>
               {o.endereco && <div><span>Entrega</span><b>{[o.endereco.apelido, o.endereco.cidade].filter(Boolean).join(' · ')}</b></div>}
             </div>
+            {o.fiscal && (o.fiscal.tot_st > 0 || o.fiscal.tot_difal > 0 || o.fiscal.tot_ipi > 0) && (
+              <div className="oi-cond">
+                {o.fiscal.tot_ipi > 0 && <div><span>IPI</span><b>{brl(o.fiscal.tot_ipi)}</b></div>}
+                {o.fiscal.tot_st > 0 && <div><span>ICMS-ST</span><b>{brl(o.fiscal.tot_st)}</b></div>}
+                {o.fiscal.tot_difal > 0 && <div><span>DIFAL {o.fiscal.difal_pp}%</span><b>{brl(o.fiscal.tot_difal)}</b></div>}
+              </div>
+            )}
             <div className="oi-total"><span>Valor total</span><b>{brl(o.valor_total)}</b></div>
+            {o.fiscal?.icms_destaque_pct > 0 && <div style={{ fontSize: 10, color: '#6b6d64', padding: '4px 2px 0' }}>ICMS {o.fiscal.icms_destaque_pct}% incluso no preço · valores conforme característica fiscal informada</div>}
           </div>
           <div className="oi-foot">
             <div className="oi-foot-rep">{rep?.nome || ''}{rep?.codigo_vendedor_totvs ? ` · cód. ${rep.codigo_vendedor_totvs}` : ''}</div>

@@ -141,6 +141,17 @@ export default function OrcamentoView() {
           <div><span>Obs. pedido (interno)</span><span>{o.obs_pedido || '—'}</span></div>
           <div><span>Obs. NF (fiscal)</span><span>{o.obs_nota_fiscal || '—'}</span></div>
         </div></div>
+        {o.fiscal && (
+          <div className="grp"><div className="gt">Impostos</div><div className="kv">
+            <div><span>Característica fiscal</span><span>{o.fiscal.exportacao ? 'Exportação (sem impostos)' : `${o.fiscal.uf || '—'} · ${o.fiscal.contribuinte === true ? 'contribuinte' : o.fiscal.contribuinte === false ? 'não contribuinte' : 'não confirmado'}${o.fiscal.revenda ? ' · revenda' : ''}`}</span></div>
+            {o.fiscal.icms_destaque_pct > 0 && <div><span>ICMS incluso no preço</span><span>{o.fiscal.icms_destaque_pct}%</span></div>}
+            {o.fiscal.tot_ipi > 0 && <div><span>IPI</span><span>{brl(o.fiscal.tot_ipi)}</span></div>}
+            {o.fiscal.tot_st > 0 && <div><span>ICMS-ST (revenda)</span><span>{brl(o.fiscal.tot_st)}</span></div>}
+            {o.fiscal.tot_difal > 0 && <div><span>DIFAL {o.fiscal.difal_pp}% (não contribuinte)</span><span>{brl(o.fiscal.tot_difal)}</span></div>}
+            {o.fiscal.difal_info > 0 && <div><span>DIFAL por conta do cliente (não somado)</span><span>{brl(o.fiscal.difal_info)}</span></div>}
+            {o.fiscal.st_pendente && <div><span>Atenção ⚠</span><span>ST não parametrizado p/ {o.fiscal.uf} — total sem ST</span></div>}
+          </div></div>
+        )}
         <div className="grp" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: 0 }}>
           <span className="muted">Total</span><span style={{ fontSize: 18, fontWeight: 800 }}>{brl(o.valor_total)}</span>
         </div>

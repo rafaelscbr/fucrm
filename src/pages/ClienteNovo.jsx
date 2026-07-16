@@ -17,7 +17,7 @@ export default function ClienteNovo() {
     razao_social: '', nome_fantasia: '', cnpj_cpf: '', tipo_pessoa: 'pj',
     tipo_cliente: 'consumidor_final', telefone: '', email: '', cidade: '', estado: 'SC',
     endereco: '', cep: '', matriz_filial: 'matriz', consentimento_lgpd: false,
-    contato_nome: '', contato_cargo: '',
+    contato_nome: '', contato_cargo: '', contribuinte: '',
   })
   const [buscando, setBuscando] = useState('')
   const [dups, setDups] = useState([])
@@ -66,8 +66,10 @@ export default function ClienteNovo() {
     if (bloqueio) { setErr('Cliente em carteira interna / bloqueado — não pode ser trabalhado.'); return }
     if (!f.consentimento_lgpd) { setErr('Marque o consentimento do cliente (LGPD) para cadastrar.'); return }
     setSaving(true)
+    const { contribuinte, ...resto } = f
     const { data, error } = await supabase.from('clientes').insert({
-      ...f,
+      ...resto,
+      contribuinte_icms: contribuinte === '' ? null : contribuinte === 'sim',
       representante_responsavel_id: session.user.id,
       representante_primeiro_contato_id: session.user.id,
       data_primeiro_registro: new Date().toISOString(),
@@ -110,6 +112,11 @@ export default function ClienteNovo() {
               <option value="revendedor">Revendedor</option>
               <option value="exportacao">Exportação</option>
               <option value="produtor_rural">Produtor rural</option></select></div>
+          <div className="field"><label>Contribuinte de ICMS? (define o preço)</label>
+            <select className="select" value={f.contribuinte} onChange={(e) => set('contribuinte', e.target.value)}>
+              <option value="">Não sei ainda — confirmar</option>
+              <option value="sim">Sim, contribuinte</option>
+              <option value="nao">Não contribuinte</option></select></div>
           <div className="field"><label>Pessoa de contato (com quem você fala)</label>
             <input className="input" value={f.contato_nome} onChange={(e) => set('contato_nome', e.target.value)} placeholder="ex.: João Silva" /></div>
           <div className="field"><label>Cargo do contato</label>

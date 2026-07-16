@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { brl, tipoClienteLabel, dataBR } from '../lib/format'
+import { OBS_FISCAL } from '../lib/fiscal'
 import { EMPRESA } from '../lib/empresa'
 
 export default function OrcamentoPDF() {
@@ -102,9 +103,14 @@ export default function OrcamentoPDF() {
 
           <div className="doc-totals">
             <div className="box">
-              <div className="kvp"><span>Subtotal dos itens</span><span>{brl(subtotal)}</span></div>
+              <div className="kvp"><span>Valor dos produtos</span><span>{brl(subtotal)}</span></div>
+              {o.fiscal?.tot_ipi > 0 && <div className="kvp"><span>IPI</span><span>{brl(o.fiscal.tot_ipi)}</span></div>}
+              {o.fiscal?.tot_st > 0 && <div className="kvp"><span>ICMS-ST</span><span>{brl(o.fiscal.tot_st)}</span></div>}
+              {o.fiscal?.tot_difal > 0 && <div className="kvp"><span>DIFAL ({o.fiscal.difal_pp}%)</span><span>{brl(o.fiscal.tot_difal)}</span></div>}
               <div className="kvp"><span>Frete ({freteLabel})</span><span>{frete ? brl(frete) : '—'}</span></div>
               <div className="kvp tot"><span>Total</span><span>{brl(o.valor_total)}</span></div>
+              {o.fiscal?.icms_destaque_pct > 0 && <div className="kvp" style={{ fontSize: 10.5, color: '#83857a' }}><span>ICMS de {o.fiscal.icms_destaque_pct}% já incluso no preço dos produtos</span><span /></div>}
+              {o.fiscal?.difal_info > 0 && <div className="kvp" style={{ fontSize: 10.5, color: '#83857a' }}><span>DIFAL de {o.fiscal.difal_pp}% ({brl(o.fiscal.difal_info)}) a recolher pelo destinatário contribuinte</span><span /></div>}
             </div>
           </div>
 
@@ -144,6 +150,15 @@ export default function OrcamentoPDF() {
               {o.obs_nota_fiscal && <div style={{ marginTop: 4 }}><b>Nota fiscal:</b> {o.obs_nota_fiscal}</div>}
             </div>
           )}
+
+          <div className="doc-legal">
+            <p><b>Nota fiscal/tributação:</b> {OBS_FISCAL}</p>
+            <p><b>Condições gerais:</b> 1. Pedidos por escrito, sujeitos à confirmação de disponibilidade e aprovação da FUPLASTIC.
+              2. Preços válidos conforme proposta no momento da confirmação; alterações de insumos, impostos ou transporte podem justificar revisão.
+              3. Faturamento mediante aprovação de crédito; condições de pagamento a combinar.
+              4. Itens em estoque ficam reservados por até 4 dias; pedidos confirmados de itens em produção não podem ser cancelados após início (multa de 40%).
+              5. A proposta poderá ser refeita caso regime tributário especial do cliente/estado impacte o fornecimento.</p>
+          </div>
 
           <div className="doc-foot">
             <div>

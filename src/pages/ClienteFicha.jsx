@@ -207,6 +207,7 @@ export default function ClienteFicha() {
             <div><span>Estado</span><span>{cli.estado || '—'}</span></div>
             <div><span>Cidade</span><span>{cli.cidade || '—'}</span></div>
             <div><span>Tipo</span><span>{tipoClienteLabel[cli.tipo_cliente]}</span></div>
+            <div><span>Contribuinte ICMS</span><span>{cli.contribuinte_icms === true ? 'Sim' : cli.contribuinte_icms === false ? 'Não' : '— confirmar'}</span></div>
             <div><span>Matriz/filial</span><span>{cli.matriz_filial}</span></div>
             <div><span>Telefone</span><span>{cli.telefone || '—'}</span></div>
             <div><span>E-mail</span><span>{cli.email || '—'}</span></div>
