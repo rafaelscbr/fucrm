@@ -149,6 +149,7 @@ textarea.input{resize:vertical;min-height:104px;line-height:1.55}
 .notif-btn:hover{border-color:var(--accent)}
 .notif-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;line-height:1;box-shadow:0 0 0 2px var(--bg)}
 .notif-pop{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-width:calc(100vw - 24px);max-height:min(70vh,460px);overflow-y:auto;background:var(--raised);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);z-index:20;padding:6px}
+@media (max-width:640px){.notif-pop{position:fixed;left:12px;right:12px;top:64px;width:auto}}
 .notif-head{font-family:var(--font-head);font-weight:700;font-size:13px;color:var(--muted);padding:8px 10px 6px}
 .notif-empty{padding:18px 12px;text-align:center;color:var(--faint);font-size:13px}
 .notif-item{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;background:transparent;border:0;border-radius:10px;padding:10px 11px;cursor:pointer;color:inherit;font-family:inherit;transition:background .12s}
