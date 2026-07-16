@@ -18,7 +18,7 @@ function telaLabel(path) {
   if (path.startsWith('/admin/catalogo')) return 'Catálogo'
   if (path.startsWith('/admin/condicoes')) return 'Condições'
   if (path.startsWith('/admin/empresa')) return 'Dados Fuplastic'
-  if (path.startsWith('/admin/importar')) return 'Importar'
+  if (path.startsWith('/admin/atividade')) return 'Atividade'
   if (path.startsWith('/admin/logs')) return 'Logs'
   if (path.startsWith('/admin')) return 'Painel'
   return path

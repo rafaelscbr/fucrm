@@ -25,7 +25,7 @@ import Catalogo from './pages/admin/Catalogo'
 import CondicoesPagamento from './pages/admin/CondicoesPagamento'
 import DadosEmpresa from './pages/admin/DadosEmpresa'
 import Logs from './pages/admin/Logs'
-import ImportarCarteira from './pages/admin/ImportarCarteira'
+import Atividade from './pages/admin/Atividade'
 
 function Protected({ children }) {
   const { session, loading } = useAuth()
@@ -74,7 +74,7 @@ export default function App() {
         <Route path="admin/condicoes" element={<Gestor><CondicoesPagamento /></Gestor>} />
         <Route path="admin/empresa" element={<Gestor><DadosEmpresa /></Gestor>} />
         <Route path="admin/logs" element={<Gestor><Logs /></Gestor>} />
-        <Route path="admin/importar" element={<Gestor><ImportarCarteira /></Gestor>} />
+        <Route path="admin/atividade" element={<Gestor><Atividade /></Gestor>} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
