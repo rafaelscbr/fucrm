@@ -23,6 +23,7 @@ export default function ImpostosConfig() {
     const { error } = await supabase.from('impostos_uf').update({
       aliq_interna: num(l.aliq_interna) ?? 0, aliq_inter: num(l.aliq_inter) ?? 0,
       difal_pp: num(l.difal_pp) ?? 0, mva_pp: num(l.mva_pp), aliq_st_pp: num(l.aliq_st_pp),
+      mva_obs: l.mva_obs || null,
       atualizado_em: new Date().toISOString(),
     }).eq('uf', l.uf)
     setSalvando(null)
@@ -55,17 +56,26 @@ export default function ImpostosConfig() {
           </tr></thead>
           <tbody>
             {ordenadas.map((l) => (
-              <tr key={l.uf} style={SUL.includes(l.uf) ? { background: 'var(--accent-soft)' } : undefined}>
-                <td style={{ fontWeight: 800 }}>{l.uf}</td>
-                {['aliq_interna', 'aliq_inter', 'difal_pp', 'mva_pp', 'aliq_st_pp'].map((k) => (
-                  <td key={k} style={{ minWidth: 84 }}>
-                    <input className="input" style={{ padding: '7px 9px', fontSize: 13.5 }} inputMode="decimal"
-                      value={l[k] ?? ''} placeholder={k === 'mva_pp' || k === 'aliq_st_pp' ? 'pendente' : '0'}
-                      onChange={(e) => set(l.uf, k, e.target.value)} />
-                  </td>
-                ))}
-                <td><button className="btn ghost sm" disabled={salvando === l.uf} onClick={() => salvar(l)}>{salvando === l.uf ? '…' : 'salvar'}</button></td>
-              </tr>
+              <>
+                <tr key={l.uf} style={SUL.includes(l.uf) ? { background: 'var(--accent-soft)' } : undefined}>
+                  <td style={{ fontWeight: 800 }}>{l.uf}</td>
+                  {['aliq_interna', 'aliq_inter', 'difal_pp', 'mva_pp', 'aliq_st_pp'].map((k) => (
+                    <td key={k} style={{ minWidth: 84 }}>
+                      <input className="input" style={{ padding: '7px 9px', fontSize: 13.5 }} inputMode="decimal"
+                        value={l[k] ?? ''} placeholder={k === 'mva_pp' || k === 'aliq_st_pp' ? 'pendente' : '0'}
+                        onChange={(e) => set(l.uf, k, e.target.value)} />
+                    </td>
+                  ))}
+                  <td><button className="btn ghost sm" disabled={salvando === l.uf} onClick={() => salvar(l)}>{salvando === l.uf ? '…' : 'salvar'}</button></td>
+                </tr>
+                {l.mva_obs && (
+                  <tr key={l.uf + '-obs'}>
+                    <td colSpan={7} style={{ paddingTop: 0 }}>
+                      <span style={{ fontSize: 11.5, color: 'var(--warn)', fontWeight: 600 }}>{l.uf}: {l.mva_obs}</span>
+                    </td>
+                  </tr>
+                )}
+              </>
             ))}
           </tbody>
         </table>
