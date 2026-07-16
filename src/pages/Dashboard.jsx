@@ -6,10 +6,13 @@ import { brl, dataBR } from '../lib/format'
 import { diasAteAniversario } from '../lib/rapport'
 import { waLink, TEMPLATES, primeiroNome } from '../lib/whatsapp'
 
+const brlShort = (n) => n >= 1000000 ? 'R$ ' + (n / 1000000).toFixed(1).replace('.', ',') + 'M'
+  : n >= 1000 ? 'R$ ' + (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + 'k' : brl(n)
+
 export default function Dashboard() {
   const { profile, session } = useAuth()
   const nav = useNavigate()
-  const [stats, setStats] = useState(null)
+  const [painel, setPainel] = useState(null)
   const [acoes, setAcoes] = useState([])
   const [rel, setRel] = useState({ niver: [], reativar: [] })
   const [metas, setMetas] = useState([])
@@ -19,20 +22,14 @@ export default function Dashboard() {
     async function load() {
       const d0 = new Date() // data local (não UTC): o dia vira à meia-noite de Brasília
       const hoje = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, '0')}-${String(d0.getDate()).padStart(2, '0')}`
-      const [clientes, interacoes, orcamentos, prox] = await Promise.all([
-        supabase.from('clientes').select('id', { count: 'exact', head: true }),
-        supabase.from('interacoes').select('id', { count: 'exact', head: true }),
-        supabase.from('orcamentos').select('id', { count: 'exact', head: true }),
-        supabase.from('interacoes')
-          .select('id, proxima_acao, proxima_acao_data, cliente:clientes(id,razao_social)')
-          .eq('representante_id', session.user.id)
-          .not('proxima_acao', 'is', null)
-          .gte('proxima_acao_data', hoje)
-          .order('proxima_acao_data', { ascending: true })
-          .limit(6),
-      ])
-      setStats({ clientes: clientes.count ?? 0, interacoes: interacoes.count ?? 0, orcamentos: orcamentos.count ?? 0 })
-      setAcoes(prox.data || [])
+      const { data: proxData } = await supabase.from('interacoes')
+        .select('id, proxima_acao, proxima_acao_data, cliente:clientes(id,razao_social)')
+        .eq('representante_id', session.user.id)
+        .not('proxima_acao', 'is', null)
+        .gte('proxima_acao_data', hoje)
+        .order('proxima_acao_data', { ascending: true })
+        .limit(6)
+      setAcoes(proxData || [])
       const { data: rd } = await supabase.from('rota_dia').select('id,checkin_em')
         .eq('representante_id', session.user.id).eq('dia', hoje)
       setRota({ total: (rd || []).length, feitas: (rd || []).filter((r) => r.checkin_em).length })
@@ -51,7 +48,7 @@ export default function Dashboard() {
       const per = new Date().toISOString().slice(0, 7)
       const [{ data: mts }, { data: mOrcs }, { data: mInt }] = await Promise.all([
         supabase.from('metas').select('*').eq('periodo', per).eq('escopo', 'representante').eq('alvo', session.user.id),
-        supabase.from('orcamentos').select('status,valor_total,created_at').eq('representante_id', session.user.id),
+        supabase.from('orcamentos').select('id,numero,status,valor_total,created_at,enviado_em,cliente:clientes(id,razao_social,nome_fantasia,contato_nome,telefone)').eq('representante_id', session.user.id),
         supabase.from('interacoes').select('tipo,resumo,data').eq('representante_id', session.user.id),
       ])
       const inMes = (dt) => (dt || '').slice(0, 7) === per
@@ -63,6 +60,20 @@ export default function Dashboard() {
         return 0
       }
       setMetas((mts || []).map((m) => ({ ...m, real: real(m) })))
+
+      // painel acionável: visitas da semana (desde segunda), orçamentos esfriando (enviado 5+ dias), pipeline aberto
+      const segunda = new Date()
+      segunda.setDate(segunda.getDate() - ((segunda.getDay() + 6) % 7))
+      segunda.setHours(0, 0, 0, 0)
+      const semana = (mInt || []).filter((i) => i.tipo !== 'ocorrencia' && new Date(i.data) >= segunda).length
+      const esfriando = (mOrcs || [])
+        .filter((o) => o.status === 'enviado' && (Date.now() - new Date(o.enviado_em || o.created_at).getTime()) / 86400000 >= 5)
+        .map((o) => ({ ...o, dias: Math.floor((Date.now() - new Date(o.enviado_em || o.created_at).getTime()) / 86400000) }))
+        .sort((a, b) => b.dias - a.dias)
+      const pipeline = (mOrcs || [])
+        .filter((o) => !['faturado', 'perdido', 'cancelado'].includes(o.status))
+        .reduce((s, o) => s + Number(o.valor_total || 0), 0)
+      setPainel({ semana, esfriando, pipeline })
     }
     load()
   }, [session])
@@ -80,9 +91,9 @@ export default function Dashboard() {
       </div>
 
       <div className="metrics">
-        <div className="metric"><div className="n">{stats?.clientes ?? '—'}</div><div className="k">Clientes</div></div>
-        <div className="metric"><div className="n">{stats?.interacoes ?? '—'}</div><div className="k">Interações</div></div>
-        <div className="metric"><div className="n">{stats?.orcamentos ?? '—'}</div><div className="k">Orçamentos</div></div>
+        <div className="metric"><div className="n">{painel?.semana ?? '—'}</div><div className="k">Visitas na semana</div></div>
+        <div className="metric"><div className="n" style={{ color: painel?.esfriando?.length ? 'var(--warn)' : undefined }}>{painel?.esfriando?.length ?? '—'}</div><div className="k">Orç. esfriando</div></div>
+        <div className="metric"><div className="n">{painel ? brlShort(painel.pipeline) : '—'}</div><div className="k">Pipeline aberto</div></div>
         <div className="metric"><div className="n">{acoes.length}</div><div className="k">Próximas ações</div></div>
       </div>
 
@@ -93,6 +104,21 @@ export default function Dashboard() {
             ? 'monte sua rota de visitas de hoje — toque para começar'
             : `${rota.feitas} de ${rota.total} parada(s) visitada(s) — toque para abrir`}</span>
         </Link>
+      )}
+
+      {painel?.esfriando?.length > 0 && (
+        <>
+          <h3 style={{ fontSize: 16, margin: '4px 0 12px' }}>Orçamentos esfriando — cobre antes que esfriem de vez</h3>
+          {painel.esfriando.map((o) => (
+            <div className="row static" key={o.id}>
+              <div className="grow" onClick={() => nav(`/orcamentos/${o.id}`)} style={{ cursor: 'pointer' }}>
+                <div className="l1">#{o.numero} · {o.cliente?.razao_social || '—'}</div>
+                <div className="l2">{brl(o.valor_total)} · enviado há {o.dias} dia(s) sem resposta</div>
+              </div>
+              <button className="btn ghost sm" onClick={() => window.open(waLink(o.cliente?.telefone, TEMPLATES.find((t) => t.id === 'orcamento').texto({ primeiro: primeiroNome(o.cliente || {}), rep: (profile?.nome || '').split(' ')[0] })), '_blank')}>Cobrar</button>
+            </div>
+          ))}
+        </>
       )}
 
       {metas.length > 0 && (
