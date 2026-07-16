@@ -50,7 +50,7 @@ export default function OrcamentoEditor() {
       if (data?.estado) supabase.from('impostos_uf').select('*').eq('uf', data.estado).single().then(({ data: i }) => setImp(i))
     })
     supabase.from('produtos')
-      .select('id,codigo_totvs,descricao,tipo_totvs,unidade,ncm,peso_liquido_kg,aliq_ipi')
+      .select('id,codigo_totvs,descricao,tipo_totvs,unidade,ncm,cest,peso_liquido_kg,aliq_ipi')
       .eq('ativo', true).eq('bloqueado', false)
       .then(({ data }) => setProdutos(data || []))
     supabase.from('tabela_precos').select('produto_id,regiao_estado,preco').then(({ data }) => {
@@ -106,6 +106,10 @@ export default function OrcamentoEditor() {
   }, [itens])
   const pesoEfetivo = pesoEditado ? peso : (pesoAuto || '')
 
+  // preço pela região do cliente: Sul (RS/SC/PR) usa tabela SUL (+6,5%); resto do país usa a nacional
+  const regiaoPreco = ['RS', 'SC', 'PR'].includes(cliente?.estado) ? 'SUL' : 'BR'
+  const precoTabela = (pid) => precos[pid]?.[regiaoPreco] ?? precos[pid]?.SUL ?? precos[pid]?.BR ?? 0
+
   function addProduto(p) {
     const existente = itens.find((i) => i.produto_id === p.id)
     if (existente) {
@@ -113,11 +117,12 @@ export default function OrcamentoEditor() {
       setFlashId(existente.uid)
       setTimeout(() => setFlashId(null), 900)
     } else {
-      const tab = precos[p.id]?.SUL ?? precos[p.id]?.BR ?? 0
+      const tab = precoTabela(p.id)
       const novo = {
         uid: uid(), produto_id: p.id, codigo_inteligente: p.codigo_totvs, descricao: p.descricao,
         unidade: p.unidade, peso_kg: p.peso_liquido_kg ? Number(p.peso_liquido_kg) : null,
         aliq_ipi: p.aliq_ipi ? Number(p.aliq_ipi) : 0, preco_tabela: tab,
+        tem_st: !!p.cest, // só produto com CEST está sujeito à substituição tributária
         quantidade: 1, valor_unitario: tab,
       }
       setItens((arr) => [...arr, novo])
@@ -157,7 +162,7 @@ export default function OrcamentoEditor() {
       return {
         orcamento_id: orc.id, produto_id: i.produto_id, codigo_inteligente: i.codigo_inteligente,
         descricao: i.descricao, quantidade: Number(i.quantidade) || 1, valor_unitario: p,
-        imposto_unit: impostoUnit(p, regra, imp).valor, ipi_unit: regra.exportacao ? 0 : ipiUnit(p, i.aliq_ipi),
+        imposto_unit: impostoUnit(p, regra, imp, i.tem_st !== false).valor, ipi_unit: regra.exportacao ? 0 : ipiUnit(p, i.aliq_ipi),
       }
     })
     await supabase.from('orcamento_itens').insert(payload)
@@ -217,7 +222,7 @@ export default function OrcamentoEditor() {
         <button className="row" key={p.id} onClick={() => addProduto(p)}>
           <div className="grow"><div className="l1">{p.descricao}</div><div className="l2">{tipoTotvsLabel(p.tipo_totvs)} · {p.unidade}{p.ncm ? ' · NCM ' + p.ncm : ''}</div></div>
           <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
-            {(precos[p.id]?.SUL ?? precos[p.id]?.BR) != null && <div style={{ fontWeight: 800, fontSize: 13.5 }}>{brl(precos[p.id]?.SUL ?? precos[p.id]?.BR)}</div>}
+            {precoTabela(p.id) > 0 && <div style={{ fontWeight: 800, fontSize: 13.5 }}>{brl(precoTabela(p.id))}</div>}
             <span className="pill i">{p.codigo_totvs}</span>
           </div>
         </button>
@@ -232,7 +237,7 @@ export default function OrcamentoEditor() {
       {itens.map((it) => {
         const p = Number(it.valor_unitario) || 0
         const q = Number(it.quantidade) || 0
-        const im = impostoUnit(p, regra, imp)
+        const im = impostoUnit(p, regra, imp, it.tem_st !== false)
         const ipi = regra.exportacao ? 0 : ipiUnit(p, it.aliq_ipi)
         const totLinha = (p + im.valor + ipi) * q
         return (
