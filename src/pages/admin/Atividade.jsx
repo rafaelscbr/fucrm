@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { brl, statusLabel, dataBR, tipoInteracaoLabel } from '../../lib/format'
+import { brl, statusLabel, dataBR, dataHoraBR, tipoInteracaoLabel } from '../../lib/format'
 
 const PERIODOS = [['7', '7 dias'], ['30', '30 dias'], ['90', '90 dias'], ['365', '12 meses'], ['all', 'Tudo']]
 const ESTAGIO = { lead: 'Lead', tentativa: 'Tentativa', prospect: 'Prospect', cliente: 'Cliente', descartado: 'Descartado' }
@@ -94,7 +94,7 @@ export default function Atividade() {
             </div>
             <div style={{ textAlign: 'right', flex: '0 0 auto' }}>
               <div style={{ fontSize: 12.5, fontWeight: 700 }}>{nome(v.representante_id)}</div>
-              <div className="l2">{dataBR(v.data)}</div>
+              <div className="l2">{dataHoraBR(v.data)}</div>
             </div>
           </button>
         ))

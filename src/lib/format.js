@@ -31,15 +31,32 @@ export const tipoInteracaoLabel = {
 
 export function diasAtras(date) {
   if (!date) return null
-  const d = Math.floor((Date.now() - new Date(date).getTime()) / 86400000)
-  if (d <= 0) return 'hoje'
-  if (d === 1) return 'ontem'
-  return `${d} dias`
+  // dias de CALENDÁRIO (local), não horas decorridas ÷ 24 — senão ontem à noite vira "hoje"
+  const d = new Date(date)
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+  const dia = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const n = Math.round((hoje - dia) / 86400000)
+  if (n <= 0) return 'hoje'
+  if (n === 1) return 'ontem'
+  return `${n} dias`
 }
 
 export function dataBR(date) {
   if (!date) return '—'
   return new Date(date).toLocaleDateString('pt-BR')
+}
+
+// Data + hora local (ex.: "15/07/2026 · 19:02") — para o horário exato do registro.
+export function dataHoraBR(date) {
+  if (!date) return '—'
+  const d = new Date(date)
+  return d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
+
+// Só a hora local (ex.: "19:02").
+export function horaBR(date) {
+  if (!date) return ''
+  return new Date(date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
 export function tempoRel(date) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { brl, tipoClienteLabel, statusLabel, canalLabel, tipoInteracaoLabel, diasAtras, dataBR } from '../lib/format'
+import { brl, tipoClienteLabel, statusLabel, canalLabel, tipoInteracaoLabel, diasAtras, dataBR, dataHoraBR } from '../lib/format'
 import EnderecosCliente from '../components/EnderecosCliente'
 import { waLink, TEMPLATES, primeiroNome } from '../lib/whatsapp'
 import { rotaUrl } from '../lib/rapport'
@@ -181,7 +181,7 @@ export default function ClienteFicha() {
               <div className="ev" key={ev.id}>
                 <div className="h">
                   <span>{ev.tipo === 'ocorrencia' ? '● Evento' : `${canalLabel[ev.canal]} · ${tipoInteracaoLabel[ev.tipo]}`}</span>
-                  <span className="faint" style={{ fontWeight: 500 }}>{diasAtras(ev.data)}</span>
+                  <span className="faint" style={{ fontWeight: 500, textAlign: 'right' }}>{dataHoraBR(ev.data)}<span style={{ opacity: .7 }}> · {diasAtras(ev.data)}</span></span>
                 </div>
                 <div className="b">
                   {ev.resumo}
