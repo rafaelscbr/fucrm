@@ -22,3 +22,9 @@ function norm(s) {
 export function coordCidade(cidade) {
   return RAW[norm(cidade)] || null
 }
+
+// Coordenada do CLIENTE [lng, lat]: ponto exato geocodificado > centro da cidade.
+export function coordCliente(c) {
+  if (c && c.lng != null && c.lat != null) return [Number(c.lng), Number(c.lat)]
+  return coordCidade(c?.cidade)
+}

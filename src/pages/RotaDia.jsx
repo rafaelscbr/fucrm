@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { coordCidade } from '../lib/cidades'
+import { coordCliente } from '../lib/cidades'
 import { distanciaKm, rotaUrl } from '../lib/rapport'
 
 const hojeISO = () => new Date().toISOString().slice(0, 10)
@@ -23,7 +23,7 @@ export default function RotaDia() {
 
   async function load() {
     const { data } = await supabase.from('rota_dia')
-      .select('*, cliente:clientes(id,razao_social,cidade,estado,endereco,contato_nome)')
+      .select('*, cliente:clientes(id,razao_social,cidade,estado,endereco,contato_nome,lat,lng)')
       .eq('dia', hojeISO()).eq('representante_id', uid)
       .order('ordem').order('created_at')
     setParadas(data || [])
@@ -56,7 +56,7 @@ export default function RotaDia() {
   async function ordenarPorProximidade() {
     if (!pos) { toast('Ative a localização para ordenar.', 'erro'); return }
     const comDist = [...paradas].sort((a, b) =>
-      distanciaKm(pos, coordCidade(a.cliente?.cidade)) - distanciaKm(pos, coordCidade(b.cliente?.cidade)))
+      distanciaKm(pos, coordCliente(a.cliente)) - distanciaKm(pos, coordCliente(b.cliente)))
     await Promise.all(comDist.map((p, i) => supabase.from('rota_dia').update({ ordem: i + 1 }).eq('id', p.id)))
     toast('Rota ordenada pela distância')
     load()
@@ -114,7 +114,7 @@ export default function RotaDia() {
       ) : (
         paradas.map((p, idx) => {
           const c = p.cliente
-          const dist = pos && c?.cidade ? distanciaKm(pos, coordCidade(c.cidade)) : null
+          const dist = pos && c ? distanciaKm(pos, coordCliente(c)) : null
           const feito = !!p.checkin_em
           return (
             <div className={'card stop' + (feito ? ' done' : '')} key={p.id} style={{ marginBottom: 10, padding: '13px 15px' }}>

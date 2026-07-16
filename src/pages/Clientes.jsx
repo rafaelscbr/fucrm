@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { tipoClienteLabel } from '../lib/format'
-import { coordCidade } from '../lib/cidades'
+import { coordCliente } from '../lib/cidades'
 import { distanciaKm } from '../lib/rapport'
 import PullToRefresh from '../components/PullToRefresh'
 import Fab from '../components/Fab'
@@ -20,7 +20,7 @@ export default function Clientes() {
   const carregar = useCallback(async () => {
     const [{ data: cs }, { data: orcs }] = await Promise.all([
       supabase.from('clientes')
-        .select('id, razao_social, cidade, estado, tipo_cliente, bloqueado, representante_responsavel_id')
+        .select('id, razao_social, cidade, estado, tipo_cliente, bloqueado, representante_responsavel_id, lat, lng')
         .order('razao_social'),
       supabase.from('orcamentos').select('cliente_id, status'),
     ])
@@ -58,7 +58,7 @@ export default function Clientes() {
   })
   let lista = filtrados
   if (filtro === 'perto' && userCoord) {
-    lista = filtrados.map((c) => ({ ...c, _d: distanciaKm(userCoord, coordCidade(c.cidade)) })).sort((a, b) => a._d - b._d)
+    lista = filtrados.map((c) => ({ ...c, _d: distanciaKm(userCoord, coordCliente(c)) })).sort((a, b) => a._d - b._d)
   }
 
   return (
